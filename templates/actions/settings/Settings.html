@@ -1,0 +1,365 @@
+{* <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> *}
+
+{literal}
+    <style>
+        .ardozlock-settings {
+        }
+    
+        .ardozlock-settings h1 {
+            color: #333; /* Цвет заголовка */
+            border-bottom: 2px solid #007BFF; /* Голубая линия под заголовком */
+            padding-bottom: 10px; /* Отступ подчеркивания */
+        }
+    
+        .ardozlock-settings .field {
+            margin-bottom: 10px; /* Отступы между полями */
+        }
+    
+        .ardozlock-settings label {
+            display: block; /* Элементы label на новой строке */
+            margin-bottom: 5px; /* Отступы между label и input */
+            color: #555; /* Цвет текста */
+            font-weight: bold; /* Жирность текста */
+        }
+    
+        .ardozlock-settings input[type="text"],
+        .ardozlock-settings input[type="email"],
+        .ardozlock-settings input[type="datetime-local"],
+        .ardozlock-settings select {
+            width: 100%; /* Ширина на всю доступную область */
+            padding: 8px; /* Внутренние отступы */
+            border: 1px solid #ccc; /* Граница */
+            border-radius: 4px; /* Скругление границ */
+            box-sizing: border-box; /* Размеры включая padding и border */
+        }
+        .ardozlock-settings {
+            border: 0;
+            border-radius: 5px;
+            
+        }
+        .ardozlock-settings button {
+            background-color: #007BFF; /* Фон кнопки */
+            color: white; /* Цвет текста кнопки */
+            border: none; /* Убрать границу */
+            padding: 10px 15px; /* Паддинги */
+            border-radius: 5px; /* Скругление углов */
+            cursor: pointer; /* Курсор в виде указателя */
+            transition: background-color 0.3s; /* Плавное изменение цвета */
+            margin-top: 10px; /* Отступ сверху */
+        }
+    
+        .ardozlock-settings button:hover {
+            background-color: #0056b3; /* Цвет при наведении */
+        }
+    
+        .ardozlock-settings select[multiple] {
+            height: auto; /* Высота в зависимости от содержимого */
+            min-height: 100px; /* Минимальная высота */
+        }
+        #accordion h3 {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            margin-top: 5px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s ease;
+            margin-bottom: 0;
+        }
+    
+        #accordion h3:hover {
+            background-color: #0056b3;
+        }
+    
+        #accordion div {
+            display: none;
+            padding: 10px;
+            border: 1px solid #007BFF;
+            border-top: none;
+            background-color: #f9f9f9;
+            margin-top: -3px;
+        }
+        
+        .zebra {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }
+    
+        .zebra th, .zebra td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+    
+        .zebra th {
+            background-color: #007BFF;
+            color: white;
+        }
+    
+        .zebra tr:nth-child(even){background-color: #f2f2f2;}
+    
+        .zebra tr:hover {background-color: #ddd;}
+    
+        .zebra a {
+            color: #007BFF; 
+            text-decoration: none; 
+        }
+    
+        .zebra a:hover {
+            text-decoration: underline;
+        }
+    
+        .ardozlock-settings .delete-company {
+            padding: 3px 8px;
+            margin-top: 0;
+            margin-left: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    
+        .ardozlock-settings .delete-company:hover {
+            background-color: #c82333;
+        }
+    
+    </style>
+    {/literal}
+    
+    <div class="ardozlock-settings">
+        <form id="add-link-form" action="?plugin=ardozlock&action=create" method="post">
+            <fieldset>
+                <h1>Создать уникальную ссылку</h1>
+                <div class="field">
+                    <label for="category_id">Категории:</label>
+                    <select name="category_id[]" id="category_id" multiple>
+                        {foreach from=$categories item=category}
+                            <option value="{$category.id}">{$category.name}</option>
+                        {/foreach}
+                    </select>
+                </div>
+    
+                
+                <div class="field">
+                    <label for="expires_at">Действует по:</label>
+                    <input type="datetime-local" name="expires_at" id="expires_at" required>
+                </div>
+                <div class="field">
+                    <label for="company_name">Название компании:</label>
+                    <input type="text" name="company_name" id="company_name" required>
+                </div>
+                <div class="field">
+                    <label for="email">Email:</label>
+                    <input type="email" name="email" id="email" required>
+                </div>
+    
+    
+                <button type="submit" class="">Создать ссылку</button>
+            </fieldset>
+            {if !empty($links)}
+                <button id="clear-tables">Очистить все таблицы</button>
+            {/if}
+    
+        </form>
+        
+        <div id="accordion">
+            {foreach from=$links item=link name=link}
+            {if $smarty.foreach.link.first || $link.company_name != $smarty.get.foreach_link.prev_item.company_name}
+            <h3>{$link.company_name} <button class="delete-company" data-company="{$link['id']}">Удалить компанию</button></h3>
+            <div>
+                <table class="zebra">
+                    <thead>
+                        <tr>
+                            <th style="width: 253px;">Категории</th>
+                            <th style="width: 488px;">Ссылки</th>
+                            <th style="width: 288px;">Действует по</th>
+                            <th style="width: 154px;">Компания</th>
+                            <th style="width: 224px;">Почта</th>
+                            <th style="width: 149px;">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            {/if}
+                        {foreach from=$link.categories item=category}
+                        <tr>
+                            <td>{$category.name}</td>
+                            <td><a href="https://dixicoat.ru/category/{$category.full_url}/?uniq={$link.unique_hash}" target="_blank">{$category.full_url}</a></td>
+                            <td>{$link.expires_at}</td>
+                            <td>{$link.company_name}</td>
+                            <td>{$link.email}</td>
+                            <td><a class="delete-link" data-id="{$link.id}" href="#">Удалить</a></td>
+                        </tr>
+                        {/foreach}
+            {if $smarty.foreach.link.last || $link.company_name != $smarty.get.foreach_link.next_item.company_name}
+                    </tbody>
+                </table>
+            </div>
+            {/if}
+            {/foreach}
+        </div>
+    </div>
+    
+    
+    {literal}
+    
+    <script>
+        
+        $(document).ready(function () {
+            $('#add-link-form').on('submit', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    type: $(this).attr('method'),
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(),
+                    dataType: 'json', // Ensure the response is treated as JSON
+                    success: function (response) {
+                        console.log(response);
+                        // Directly use 'response.links' assuming the server responds with JSON
+                        updateLinksTable(response.newCompany); // Предполагаем, что сервер возвращает новую ссылку
+                        initializeAccordion(); // Реинициализируем аккордеон
+                        $('#add-link-form')[0].reset();
+                    },
+                    error: function () {
+                        alert('Произошла ошибка. Пожалуйста, попробуйте еще раз.');
+                    }
+                });
+            });
+    
+            $('body').on('click', '.delete-link', function (e) {
+                e.preventDefault();
+                if (!confirm('Вы уверены, что хотите удалить эту ссылку?')) return;
+    
+                var linkId = $(this).data('id');
+                $.ajax({
+                    type: 'POST',
+                    url: '?plugin=ardozlock&action=delete',
+                    data: { id: linkId },
+                    dataType: 'json',
+                    success: function (response) {
+                        // console.log(response);
+                        // if (response.success) {
+                        //     $('a.delete-link[data-id="' + linkId + '"]').closest('tr').remove();
+                        // } else {
+                        //     alert('Не удалось удалить ссылку.');
+                        // }
+                    },
+                    error: function () {
+                        // alert('Произошла ошибка.');
+                    }
+                });
+                $('a.delete-link[data-id="' + linkId + '"]').closest('tr').remove();
+            });
+    
+            // Активируем аккордеон
+            //$("#accordion").accordion({
+            //    collapsible: true,
+            //    heightStyle: "content",
+            //    active: false
+            //});
+    
+            function updateLinksTable(link) {
+                var newSection = createAccordionSection(link);
+                $('#accordion').append(newSection); // Добавляем новую секцию в конец аккордеона
+            }
+    
+            function createAccordionSection(link) {
+                // Создаем HTML структуру для нового раздела аккордеона
+                var sectionHTML = '<h3>' + link.company_name + ' <button class="delete-company" data-company="' + link.id + '">Удалить компанию</button></h3>' +
+                    '<div>' +
+                    '<table class="zebra">' +
+                    '<thead>' +
+                    '<tr>' +
+                    '<th style="width: 253px;">Категории</th>' +
+                    '<th style="width: 488px;">Ссылки</th>' +
+                    '<th style="width: 288px;">Действует по</th>' +
+                    '<th style="width: 154px;">Компания</th>' +
+                    '<th style="width: 224px;">Почта</th>' +
+                    '<th style="width: 149px;">Действия</th>' +
+                    '</tr>' +
+                    '</thead>' +
+                    '<tbody>';
+    
+                // Добавляем каждую категорию новой ссылки в таблицу
+                link.categories.forEach(function (category) {
+                    sectionHTML += '<tr>' +
+                        '<td>' + category.name + '</td>' +
+                        '<td><a href="http://' + category.full_url + '" target="_blank">' + category.full_url + '</a></td>' +
+                        '<td>' + link.expires_at + '</td>' +
+                        '<td>' + link.company_name + '</td>' +
+                        '<td>' + link.email + '</td>' +
+                        '<td><a class="delete-link" data-id="' + link.id + '" href="#">Удалить</a></td>' +
+                        '</tr>';
+                });
+    
+                sectionHTML += '</tbody></table></div>';
+                return sectionHTML;
+            }
+    
+            function initializeAccordion() {
+                $('#accordion h3').off('click').click(function () {
+                    $(this).siblings('div').slideUp(); // Закрываем все другие секции
+                    $(this).next().slideToggle(); // Используем slideToggle для плавного открытия и закрытия
+                });
+            }
+            initializeAccordion();
+            
+            $('#clear-tables').click(function() {
+                if (confirm('Вы уверены, что хотите очистить все данные из таблиц? Это действие необратимо!')) {
+                    clearAllData();
+                }
+            });
+    
+            function clearAllData() {
+                $.ajax({
+                    type: 'POST',
+                    url: '?plugin=ardozlock&action=clearall', // Укажите правильный URL API
+                    success: function(response) {
+                        console.log(response);
+                        if (response.success) {
+                            alert('Все данные были успешно удалены.');
+                            // Очистка интерфейса, если необходимо
+                            $('#accordion').empty();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Ошибка сервера при попытке удаления данных.');
+                    }
+                });
+            }
+    
+            
+        });
+        // Обработчик удаления компании
+        $('body').on('click', '.delete-company', function(e) {
+                e.preventDefault();
+                var id = $(this).data('company');
+                if (confirm('Вы уверены, что хотите удалить все данные для компании ?')) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '?plugin=ardozlock&action=deletecompany', // Указать правильный URL API
+                        data: { id: id },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                alert('Все данные для компании были успешно удалены.');
+                                // Удаление раздела из аккордеона
+                                $(e.target).closest('h3').next().remove();
+                                $(e.target).closest('h3').remove();
+                            } else {
+                                alert('Ошибка: ' + response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Произошла ошибка при удалении данных.');
+                        }
+                    });
+                }
+            });
+    </script>
+    {/literal}
+    
