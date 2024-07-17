@@ -3,16 +3,15 @@
 class shopArdozlockPluginBackendClosedcatlistAction extends waViewAction
 {
     public function execute()
-    {   
-        
+    {
         $this->setLayout(new shopBackendLayout());
         $this->layout->assign('no_level2', true);
-        
+
         $this->view->assign('categories', $this->getCategoriesWithHierarchy());
+        $this->view->assign('pages', $this->getPagesWithHierarchy());
 
         // Fetch and assign links, including their multiple categories and email
         $linksModel = new shopArdozlockPluginLinksModel();
-        // $links = $this->prepareLinksForDisplay($linksModel->getLinks());
         $this->view->assign('links', $linksModel->getLinks());
     }
 
@@ -35,6 +34,28 @@ class shopArdozlockPluginBackendClosedcatlistAction extends waViewAction
             ];
         }
         return $preparedCategories;
+    }
+
+    protected function getPagesWithHierarchy()
+    {
+        $model = new waModel();
+        $sql = "SELECT * FROM shop_page ORDER BY sort ASC";
+        $pages = $model->query($sql)->fetchAll();
+        return $this->preparePagesForDisplay($pages);
+    }
+
+    protected function preparePagesForDisplay($pages)
+    {
+        $preparedPages = [];
+        foreach ($pages as $page) {
+            $prefix = ''; // Здесь можно добавить префикс, если у вас есть иерархия
+            $preparedPages[] = [
+                'id' => $page['id'],
+                'name' => $prefix . $page['name'],
+                'url' => $page['url']
+            ];
+        }
+        return $preparedPages;
     }
 }
 

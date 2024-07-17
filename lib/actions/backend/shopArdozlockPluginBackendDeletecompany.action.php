@@ -24,6 +24,10 @@ class shopArdozlockPluginBackendDeletecompanyAction extends waViewAction
             $sql = "DELETE FROM ardozlock_link_categories WHERE link_id = i:link_id";
             $model->exec($sql, ['link_id' => $linkId]);
 
+            // Удаление записей из таблицы инфостраниц
+            $sql = "DELETE FROM ardozlock_link_shoppage WHERE link_id = i:link_id";
+            $model->exec($sql, ['link_id' => $linkId]);
+
             // Удаление самой ссылки
             $sql = "DELETE FROM ardozlock_links WHERE id = i:id";
             $model->exec($sql, ['id' => $linkId]);
@@ -46,4 +50,3 @@ class shopArdozlockPluginBackendDeletecompanyAction extends waViewAction
         }
     }
 }
-

@@ -3,11 +3,11 @@ class shopArdozlockPluginLinkShoppageModel extends waModel
 {
     protected $table = 'ardozlock_link_shoppage';
 
-    public function getCategoriesByLinkId($linkId)
+    public function getPagesByLinkId($linkId)
     {
-        $sql = "SELECT c.id, c.name, c.full_url FROM shop_category c
-                JOIN {$this->table} lc ON c.id = lc.category_id
-                WHERE lc.link_id = i:link_id";
+        $sql = "SELECT p.id, p.name, p.full_url FROM shop_page p
+                JOIN {$this->table} lp ON p.id = lp.page_id
+                WHERE lp.link_id = i:link_id";
         return $this->query($sql, ['link_id' => $linkId])->fetchAll();
     }
 }

@@ -173,42 +173,76 @@
             {/if}
     
         </form>
-        
+
         <div id="accordion">
             {foreach from=$links item=link name=link}
-            {if $smarty.foreach.link.first || $link.company_name != $smarty.get.foreach_link.prev_item.company_name}
-            <h3>{$link.company_name} <button class="delete-company" data-company="{$link['id']}">Удалить компанию</button></h3>
-            <div>
-                <table class="zebra">
-                    <thead>
-                        <tr>
-                            <th style="width: 253px;">Категории</th>
-                            <th style="width: 488px;">Ссылки</th>
-                            <th style="width: 288px;">Действует по</th>
-                            <th style="width: 154px;">Компания</th>
-                            <th style="width: 224px;">Почта</th>
-                            <th style="width: 149px;">Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            {/if}
-                        {foreach from=$link.categories item=category}
-                        <tr>
-                            <td>{$category.name}</td>
-                            <td><a href="https://dixicoat.ru/category/{$category.full_url}/?uniq={$link.unique_hash}" target="_blank">{$category.full_url}</a></td>
-                            <td>{$link.expires_at}</td>
-                            <td>{$link.company_name}</td>
-                            <td>{$link.email}</td>
-                            <td><a class="delete-link" data-id="{$link.id}" href="#">Удалить</a></td>
-                        </tr>
-                        {/foreach}
-            {if $smarty.foreach.link.last || $link.company_name != $smarty.get.foreach_link.next_item.company_name}
-                    </tbody>
-                </table>
-            </div>
-            {/if}
+                {if $smarty.foreach.link.first || $link.company_name != $smarty.get.foreach_link.prev_item.company_name}
+                    {$descripton = ''}
+                    {if $link.categories|@count > 0}
+                        {$descripton = ' - список категорий'}
+                    {/if}
+                    {if $link.pages|@count > 0}
+                        {$descripton = ' - список инфостраниц'}
+                    {/if}
+                    <h3>{$link.company_name}{$descripton}<button class="delete-company" data-company="{$link['id']}">Удалить компанию</button> </h3>
+                    <div>
+                        {if $link.categories|@count > 0}
+                            <table class="zebra">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 253px;">Категории</th>
+                                        <th style="width: 488px;">Ссылки</th>
+                                        <th style="width: 288px;">Действует по</th>
+                                        <th style="width: 154px;">Компания</th>
+                                        <th style="width: 224px;">Почта</th>
+                                        <th style="width: 149px;">Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {foreach from=$link.categories item=category}
+                                    <tr>
+                                        <td>{$category.name}</td>
+                                        <td><a href="https://dixicoat.ru/category/{$category.full_url}/?uniq={$link.unique_hash}" target="_blank">{$category.full_url}</a></td>
+                                        <td>{$link.expires_at}</td>
+                                        <td>{$link.company_name}</td>
+                                        <td>{$link.email}</td>
+                                        <td><a class="delete-link" data-id="{$link.id}" href="#">Удалить</a></td>
+                                    </tr>
+                                    {/foreach}
+                                </tbody>
+                            </table>
+                        {/if}
+                        {if $link.pages|@count > 0}
+                            <table class="zebra">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 253px;">Инфостраницы</th>
+                                        <th style="width: 488px;">Ссылки</th>
+                                        <th style="width: 288px;">Действует по</th>
+                                        <th style="width: 154px;">Компания</th>
+                                        <th style="width: 224px;">Почта</th>
+                                        <th style="width: 149px;">Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {foreach from=$link.pages item=page}
+                                    <tr>
+                                        <td>{$page.name}</td>
+                                        <td><a href="https://dixicoat.ru/{$page.full_url}?uniq={$link.unique_hash}" target="_blank">{$page.full_url}</a></td>
+                                        <td>{$link.expires_at}</td>
+                                        <td>{$link.company_name}</td>
+                                        <td>{$link.email}</td>
+                                        <td><a class="delete-page-link" data-link-id="{$link.id}" data-page-id="{$page.id}" href="#">Удалить</a></td>
+                                    </tr>
+                                    {/foreach}
+                                </tbody>
+                            </table>
+                        {/if}
+                    </div>
+                {/if}
             {/foreach}
         </div>
+
     </div>
     
     
@@ -244,7 +278,7 @@
                 var linkId = $(this).data('id');
                 $.ajax({
                     type: 'POST',
-                    url: '?plugin=ardozlock&action=delete',
+                    url: '?plugin=ardozlock&action=deleteonecatlink',
                     data: { id: linkId },
                     dataType: 'json',
                     success: function (response) {
@@ -369,6 +403,30 @@
                     });
                 }
             });
+
+        $('body').on('click', '.delete-page-link', function (e) {
+            e.preventDefault();
+            if (!confirm('Вы уверены, что хотите удалить эту ссылку на инфостраницу?')) return;
+
+            var linkId = $(this).data('link-id');
+            var pageId = $(this).data('page-id');
+            $.ajax({
+                type: 'POST',
+                url: '?plugin=ardozlock&action=deleteonepage',
+                data: { link_id: linkId, page_id: pageId },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        $('a.delete-page-link[data-link-id="' + linkId + '"][data-page-id="' + pageId + '"]').closest('tr').remove();
+                    } else {
+                        alert('Не удалось удалить ссылку на инфостраницу.');
+                    }
+                },
+                error: function () {
+                    alert('Произошла ошибка.');
+                }
+            });
+        });
     </script>
     {/literal}
     
