@@ -1,34 +1,31 @@
 <?php
 
 return [
-    'ardozlock_links' => [
+    'shop_ardozlock_buyers' => [
         'id' => ['int', 11, 'null' => 0, 'autoincrement' => 1],
-        'unique_hash' => ['varchar', 255, 'null' => 0],
-        'expires_at' => ['datetime', 'null' => 0],
-        'created_at' => ['datetime', 'null' => 0],
+        'name' => ['varchar', 255, 'null' => 0],
         'email' => ['varchar', 255, 'null' => 0],
-        'company_name' => ['varchar', 255, 'null' => 0],
-        'type' => ['varchar', 255, 'null' => 0],
         ':keys' => [
             'PRIMARY' => ['id'], // Primary key definition
         ],
     ],
-    'ardozlock_link_categories' => [
-        'link_id' => ['int', 11, 'null' => 0],
-        'category_id' => ['int', 11, 'null' => 0],
+    'shop_ardozlock_blocked_pages' => [
+        'id' => ['int', 11, 'null' => 0, 'autoincrement' => 1],
+        'buyer_id' => ['int', 11, 'null' => 0],
+        'page_id' => ['int', 11, 'null' => 0],
+        'page_type' => ['enum', "'infopage','category'", 'null' => 0],
+        'application_id' => ['varchar', 50, 'null' => 0], 
         ':keys' => [
-            'PRIMARY' => ['link_id', 'category_id'],
-            'link_id' => 'link_id',
-            'category_id' => 'category_id',
+            'PRIMARY' => ['id'],
         ],
     ],
-    'ardozlock_link_shoppage' => [
-        'link_id' => ['int', 11, 'null' => 0],
+    'shop_ardozlock_global_blocked_pages' => [
+        'id' => ['int', 11, 'null' => 0, 'autoincrement' => 1],
         'page_id' => ['int', 11, 'null' => 0],
+        'page_type' => ['enum', "'infopage','category'", 'null' => 0],
+        'application_id' => ['varchar', 50, 'null' => 0], 
         ':keys' => [
-            'PRIMARY' => ['link_id', 'page_id'],
-            'link_id' => 'link_id',
-            'page_id' => 'page_id',
+            'PRIMARY' => ['id'],
         ],
-    ]    
+    ],
 ];

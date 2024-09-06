@@ -1,4 +1,7 @@
-{* <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> *}
+
+<script src="https://unpkg.com/vue@3"></script>
+
+{include file='./closedcatlist/BuyerManagement.html' inline}
 
 {literal}
     <style>
@@ -25,6 +28,7 @@
         .ardozlock-settings input[type="text"],
         .ardozlock-settings input[type="email"],
         .ardozlock-settings input[type="datetime-local"],
+        .ardozlock-settings input[type="date"],
         .ardozlock-settings select {
             width: 100%; /* Ширина на всю доступную область */
             padding: 8px; /* Внутренние отступы */
@@ -32,11 +36,13 @@
             border-radius: 4px; /* Скругление границ */
             box-sizing: border-box; /* Размеры включая padding и border */
         }
+
         .ardozlock-settings {
             border: 0;
             border-radius: 5px;
             
         }
+
         .ardozlock-settings button {
             background-color: #007BFF; /* Фон кнопки */
             color: white; /* Цвет текста кнопки */
@@ -125,7 +131,6 @@
         .ardozlock-settings .delete-company:hover {
             background-color: #c82333;
         }
-    
     </style>
     {/literal}
     

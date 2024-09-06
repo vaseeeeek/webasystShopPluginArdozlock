@@ -6,13 +6,33 @@ class shopArdozlockPluginBackendClosedcatlistAction extends waViewAction
     {
         $this->setLayout(new shopBackendLayout());
         $this->layout->assign('no_level2', true);
+        $this->view->assign('plugin_url', wa()->getPlugin('ardozlock')->getPluginStaticUrl());
 
-        $this->view->assign('categories', $this->getCategoriesWithHierarchy());
-        $this->view->assign('pages', $this->getPagesWithHierarchy());
+        $this->view->assign('categories', $this->getCategoriesWithHierarchy());// Создаем объект модели для работы с заблокированными страницами
+
+        
+        $globalBlockedPagesModel = new shopArdozlockGlobalblockedpagesModel();
+
+        // Получаем список всех заблокированных страниц
+        $globalBlockedPages = $globalBlockedPagesModel->getAllBlockedPages();
+
+        // Передаем данные в шаблон
+        $this->view->assign('globalBlockedPages', $globalBlockedPages);
+
+        
+        // Инициализация сервиса покупателей
+        $buyerService = new shopArdozlockBuyerService();
+
+        // Получаем список покупателей с их заблокированными страницами
+        $buyersData = $buyerService->getAllBuyersWithBlockedPages();
+
+        // Передаем данные в шаблон
+        $this->view->assign('buyersData', $buyersData);
+        // $this->view->assign('pages', $this->getPagesWithHierarchy());
 
         // Fetch and assign links, including their multiple categories and email
-        $linksModel = new shopArdozlockPluginLinksModel();
-        $this->view->assign('links', $linksModel->getLinks());
+        // $linksModel = new shopArdozlockPluginLinksModel();
+        // $this->view->assign('links', $linksModel->getLinks());
     }
 
     protected function getCategoriesWithHierarchy()
