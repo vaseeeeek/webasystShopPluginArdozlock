@@ -8,7 +8,7 @@ class shopArdozlockBuyerService
     public function __construct()
     {
         $this->buyersModel = new shopArdozlockBuyersModel();
-        $this->blockedPagesModel = new shopArdozlockBlockedPagesModel();
+        $this->blockedPagesModel = new shopArdozlockBlockedbuyerpagesModel();
     }
 
     /**

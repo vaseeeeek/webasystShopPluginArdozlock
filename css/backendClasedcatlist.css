@@ -452,3 +452,110 @@
     background-color: #5a6268;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
+
+.blocked-pages-selector {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 10px;
+    background-color: #f9f9f9;
+}
+
+.blocked-pages-selector__title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.blocked-pages-selector__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.blocked-pages-selector__select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: #fff;
+}
+
+.blocked-pages-selector__option {
+    padding: 5px;
+    font-size: 16px;
+}
+
+.blocked-pages-selector__button {
+    padding: 10px 15px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.blocked-pages-selector__button--save {
+    background-color: #28a745;
+}
+
+.blocked-pages-selector__button:hover {
+    background-color: #0056b3;
+}
+
+.blocked-pages-selector__button--save:hover {
+    background-color: #218838;
+}
+
+.blocked-pages-selector__app-card {
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.blocked-pages-selector__app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.blocked-pages-selector__app-header:hover {
+    background-color: #e9ecef;
+}
+
+.blocked-pages-selector__app-header h5 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.blocked-pages-selector__toggle-btn {
+    background-color: transparent;
+    border: none;
+    font-size: 14px;
+    color: #007bff;
+    cursor: pointer;
+    outline: none;
+    transition: color 0.3s ease;
+}
+
+.blocked-pages-selector__toggle-btn:hover {
+    color: #0056b3;
+}
+
+.blocked-pages-selector__pages-list {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-top: 1px solid #ddd;
+}

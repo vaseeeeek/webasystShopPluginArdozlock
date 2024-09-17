@@ -1,8 +1,7 @@
-// Регистрация компонента GlobalBlockedPages
-window.ardozlock = window.ardozlock || {};
-window.ardozlock.components = window.ardozlock.components || {};
+import { sendRequest } from '../utils.js';
 
-window.ardozlock.components.globalblockedpages = {
+export default {
+
     delimiters: ['[[', ']]'],
     data() {
         return {
@@ -46,11 +45,14 @@ window.ardozlock.components.globalblockedpages = {
                     })),
                     selectedPages: []
                 }
-            ],
-            globalBlockedPages: window.ardozlock.globalBlockedPages || [],
+            ]
         };
     },
+    
     created() {
+        // Пример использования глобально заблокированных страниц
+        this.globalBlockedPages = window.ardozlock.globalBlockedPages || [];
+
         // Инициализация выбранных страниц для каждого приложения
         this.apps.forEach(app => {
             app.selectedPages = this.globalBlockedPages
@@ -59,19 +61,19 @@ window.ardozlock.components.globalblockedpages = {
         });
     },
     methods: {
+        // Метод для сворачивания/разворачивания списка страниц приложения
         toggleApp(appId) {
             const app = this.apps.find(app => app.id === appId);
             app.expanded = !app.expanded;
         },
+        // Метод сохранения заблокированных страниц
         saveGlobalBlockedPages() {
             const blockedPages = this.getGlobalBlockedPages();
             if (blockedPages.length === 0) {
                 alert('Нет изменений для сохранения.');
                 return;
             }
-
-            // Пример отправки данных на сервер
-            this.sendRequest('/ardozlock/saveglobalsblockpages/', { blockedPages })
+            sendRequest('/ardozlock/saveglobalsblockpages/', { blockedPages })
                 .then(result => {
                     if (result.status === 'ok') {
                         alert('Изменения успешно сохранены');
@@ -83,6 +85,7 @@ window.ardozlock.components.globalblockedpages = {
                     alert('Ошибка при сохранении изменений');
                 });
         },
+        // Метод для сбора заблокированных страниц
         getGlobalBlockedPages() {
             return this.apps.reduce((acc, app) => {
                 if (!app.selectedPages || app.selectedPages.length === 0) return acc;
@@ -99,43 +102,54 @@ window.ardozlock.components.globalblockedpages = {
                 });
                 return acc;
             }, []);
-        },
-        sendRequest(url, data, method = 'POST', headers = {}) {
-            return fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...headers,
-                },
-                body: JSON.stringify(data),
-            })
-                .then(response => response.json())
-                .catch(error => {
-                    console.error('Ошибка при отправке данных:', error);
-                    throw error;
-                });
         }
     },
     template: `
-        <div>
-            <div v-for="app in apps" :key="app.id" class="ardozlock-closepage__app-card">
-                <div class="ardozlock-closepage__app-header" @click="toggleApp(app.id)">
-                    <h3>[[ app.name ]]</h3>
-                    <button class="ardozlock-closepage__toggle-btn">
-                        [[ app.expanded ? 'Свернуть' : 'Развернуть' ]]
+        <div class="ardozlock-tab__contents__item">
+            <div class="ardozlock-closepage">
+                <!-- Шапка страницы -->
+                <div class="ardozlock-closepage__header">
+                    <h2>Управление доступом к страницам</h2>
+                    <p>Выберите страницы, доступ к которым нужно ограничить</p>
+                </div>
+
+                <!-- Основная часть страницы -->
+                <div class="ardozlock-closepage__main">
+                    <div 
+                        v-for="app in apps.filter(app => app.pages.length > 0)" 
+                        :key="app.id" 
+                        class="ardozlock-closepage__app-card"
+                    >
+                        <div class="ardozlock-closepage__app-header" @click="toggleApp(app.id)">
+                            <h3>[[ app.name ]]</h3>
+                            <button class="ardozlock-closepage__toggle-btn">
+                                [[ app.expanded ? 'Свернуть' : 'Развернуть' ]]
+                            </button>
+                        </div>
+                        <div v-if="app.expanded" class="ardozlock-closepage__pages-list">
+                            <select 
+                                v-model="app.selectedPages" 
+                                multiple 
+                                class="ardozlock-closepage__select"
+                                size="5">
+                                <option 
+                                    v-for="(page, pageIndex) in app.pages" 
+                                    :key="page.id" 
+                                    :value="page.id">
+                                    [[ page.name ]]
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Подвал страницы -->
+                <div class="ardozlock-closepage__footer">
+                    <button class="ardozlock-closepage__button ardozlock-closepage__button--save" @click="saveGlobalBlockedPages">
+                        Сохранить изменения
                     </button>
                 </div>
-                <div v-if="app.expanded" class="ardozlock-closepage__pages-list">
-                    <select v-model="app.selectedPages" multiple class="ardozlock-closepage__select" size="5">
-                        <option v-for="(page, pageIndex) in app.pages" :key="page.id" :value="page.id">
-                            [[ page.name ]]
-                        </option>
-                    </select>
-                </div>
             </div>
-            <button class="ardozlock-closepage__button ardozlock-closepage__button--save" @click="saveGlobalBlockedPages">
-                Сохранить изменения
-            </button>
         </div>
-    `,
+    `
 };

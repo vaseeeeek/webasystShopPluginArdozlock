@@ -13,372 +13,46 @@
     window.ardozlock.globalBlockedPages = {json_encode($globalBlockedPages)};
 </script>
 
-<div id="BuyerManagement">
-    <div class="ardozlock-tab__buttons__list">
-        <div class="ardozlock-tab__button__item" @click="activeTab = 'buyers'">Покупатели</div>
-        <div class="ardozlock-tab__button__item" @click="activeTab = 'closedpages'">Закрытые страницы</div>
-    </div>
-    <div class="ardozlock-tab__contents__list">
-        <div class="ardozlock-tab__contents__item" v-if="activeTab === 'buyers'">
-            <div class="ardozlock-buyer__buyer-management">
-                <div class="ardozlock-buyer__header">
-                    <input class="ardozlock-buyer__search" type="text" v-model="searchQuery" placeholder="Поиск покупателя...">
-                    <button class="ardozlock-buyer__button ardozlock-buyer__button--create" @click="openCreateBuyerForm">Создать покупателя</button>
-                </div>
-
-                <ul id="buyer-list">
-                    <li class="ardozlock-buyer__buyer-item" v-for="buyer in filteredBuyers" :key="buyer.id" @click="toggleBuyerInfo(buyer.id)">
-                        <span class="ardozlock-buyer__buyer-name">[[ buyer.name ]]</span>
-                        <button class="ardozlock-buyer__button ardozlock-buyer__button--delete" @click.stop="deleteBuyer(buyer.id)">Удалить</button>
-
-                        <div class="ardozlock-buyer__buyer-info" v-if="buyer.showInfo">
-                            <h4>Доступные страницы:</h4>
-                            <div class="ardozlock-buyer__app-card" v-for="app in buyer.apps" :key="app.name">
-                                <h5>[[ app.name ]]</h5>
-                                <label v-for="page in app.pages" :key="page.name">
-                                    <input type="checkbox" v-model="page.access"> [[ page.name ]]
-                                </label>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Модальное окно для создания покупателя -->
-            <div v-if="showCreateBuyerModal" class="ardozlock-buyer__modal">
-                <div class="ardozlock-buyer__modal-content">
-                    <span class="ardozlock-buyer__close" @click="closeCreateBuyerForm">&times;</span>
-                    <h2>Создать покупателя</h2>
-                    <form @submit.prevent="submitNewBuyer">
-                        {$wa->csrf()}
-                        <div class="ardozlock-buyer__form-group">
-                            <label for="buyer-name">Имя покупателя:</label>
-                            <input type="text" id="buyer-name" v-model="newBuyer.name" required>
-                            <span v-if="errors.name">[[ errors.name ]]</span>
-                        </div>
-                        <div class="ardozlock-buyer__form-group">
-                            <label for="buyer-email">Email:</label>
-                            <input type="text" id="buyer-email" v-model="newBuyer.email" required>
-                            <span v-if="errors.email">[[ errors.email ]]</span>
-                        </div>
-                        <div class="ardozlock-buyer__form-actions">
-                            <button type="submit" class="ardozlock-buyer__button ardozlock-buyer__button--save">Сохранить</button>
-                            <button type="button" class="ardozlock-buyer__button ardozlock-buyer__button--cancel" @click="closeCreateBuyerForm">Отмена</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="ardozlock-tab__contents__item" v-if="activeTab === 'closedpages'">
-            <div class="ardozlock-closepage">
-                <!-- Шапка страницы -->
-                <div class="ardozlock-closepage__header">
-                    <h2>Управление доступом к страницам</h2>
-                    <p>Выберите страницы, доступ к которым нужно ограничить</p>
-                </div>
-
-                <!-- Основная часть страницы -->
-                <div class="ardozlock-closepage__main">
-                    <div 
-                        v-for="app in apps.filter(app => app.pages.length > 0)" 
-                        :key="app.id" 
-                        class="ardozlock-closepage__app-card"
-                    >
-                        <div class="ardozlock-closepage__app-header" @click="toggleApp(app.id)">
-                            <h3>[[ app.name ]]</h3>
-                            <button class="ardozlock-closepage__toggle-btn">
-                                [[ app.expanded ? 'Свернуть' : 'Развернуть' ]]
-                            </button>
-                        </div>
-                        <div v-if="app.expanded" class="ardozlock-closepage__pages-list">
-                            <select 
-                                v-model="app.selectedPages" 
-                                multiple 
-                                class="ardozlock-closepage__select"
-                                size="5">
-                                <option 
-                                    v-for="(page, pageIndex) in app.pages" 
-                                    :key="page.id" 
-                                    :value="page.id">
-                                    [[ page.name ]]
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Подвал страницы -->
-                <div class="ardozlock-closepage__footer">
-                    <button class="ardozlock-closepage__button ardozlock-closepage__button--save" @click="saveGlobalBlockedPages">
-                        Сохранить изменения
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="BuyerManagement"></div>
 
 {literal}
-    <script>
-        const app = Vue.createApp({
-            delimiters: ['[[', ']]'],
-            data() {
-                return {
-                    searchQuery: '',
-                    buyers: [
-                        {
-                            id: 'buyer1',
-                            name: 'Иван Иванов',
-                            showInfo: false,
-                            apps: [
-                                {
-                                    name: 'Блог',
-                                    pages: [
-                                        { name: 'Главная страница', access: true },
-                                        { name: 'Страница постов', access: false }
-                                    ]
-                                },
-                                {
-                                    name: 'Магазин',
-                                    pages: [
-                                        { name: 'Корзина', access: true },
-                                        { name: 'Каталог товаров', access: false }
-                                    ]
-                                }
-                            ]
-                        }
-                        // Здесь можно добавить других покупателей
-                    ],
-                    showCreateBuyerModal: false,
-                    newBuyer: {
-                        name: '',
-                        email: '',
-                    },
-                    activeTab: 'buyers',
-                    apps: [
-                        {
-                            id: 'shop-cat',
-                            name: 'Категории',
-                            application_id: 'shop',
-                            page_type: 'category',
-                            expanded: false,
-                            pages: window.ardozlock.allCategories.map(category => ({
-                                id: category.id,
-                                name: category.name,
-                                access: false
-                            })),
-                            selectedPages: []
-                        },
-                        {
-                            id: 'shop-pages',
-                            name: 'Страницы приложения "Магазин"',
-                            application_id: 'shop',
-                            page_type: 'infopage',
-                            expanded: false,
-                            pages: Object.values(window.ardozlock.allShopPages).map(page => ({
-                                id: page.id,
-                                name: page.name,
-                                access: false
-                            })),
-                            selectedPages: []
-                        },
-                        {
-                            id: 'site-pages',
-                            name: 'Страницы приложения "Сайт"',
-                            application_id: 'site',
-                            page_type: 'infopage',
-                            expanded: false,
-                            pages: Object.values(window.ardozlock.allSitePages).map(page => ({
-                                id: page.id,
-                                name: page.name,
-                                access: false
-                            })),
-                            selectedPages: []
-                        }
-                    ],
-                    globalBlockedPages: [],
-                    newBuyer: {
-                        name: '',
-                        email: '',
-                        pages: []
-                    },
-                    errors: {},
-                };
+<script type="module">
+    {/literal}
+    import BuyersManagement from '{$plugin_url}js/components/BuyersManagement.js';
+    import GlobalBlockedPages from '{$plugin_url}js/components/GlobalBlockedPages.js';
+    {literal}
+
+    const app = Vue.createApp({
+        delimiters: ['[[', ']]'],
+        components: {
+            'buyers-management': BuyersManagement,
+            'global-blocked-pages': GlobalBlockedPages,
+        },
+        data() {
+            return {
+                activeTab: 'buyers',  // Управляем состоянием вкладок
+            };
+        },
+        computed: {
+            isActiveBuyersTab() {
+                return this.activeTab === 'buyers';
             },
-            created() {
-                // Пример использования глобально заблокированных страниц
-                this.globalBlockedPages = window.ardozlock.globalBlockedPages || [];
-        
-                // Инициализация выбранных страниц для каждого приложения
-                this.apps.forEach(app => {
-                    app.selectedPages = this.globalBlockedPages
-                        .filter(page => page.application_id === app.application_id && page.page_type === app.page_type)
-                        .map(page => page.page_id);
-                });
+            isActiveClosedPagesTab() {
+                return this.activeTab === 'closedpages';
             },
-            computed: {
-                filteredBuyers() {
-                    if (!this.searchQuery) {
-                        return this.buyers;
-                    }
-                    const query = this.searchQuery.toLowerCase();
-                    return this.buyers.filter(buyer => buyer.name.toLowerCase().includes(query));
-                }
-            },
-            methods: {
-                validateForm() {
-                    this.errors = {};
-        
-                    if (!this.newBuyer.name) {
-                        this.errors.name = 'Имя покупателя обязательно';
-                    }
-        
-                    if (!this.newBuyer.email) {
-                        this.errors.email = 'Email обязателен';
-                    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.newBuyer.email)) {
-                        this.errors.email = 'Введите корректный email';
-                    }
-        
-                    return Object.keys(this.errors).length === 0;
-                },
-        
-                submitNewBuyer() {
-                    if (this.validateForm()) {
-                        const buyerData = {
-                            name: this.newBuyer.name,
-                            email: this.newBuyer.email
-                        };
-        
-                        this.sendRequest('/ardozlock/savebuyer/', buyerData)
-                            .then(result => {
-                                if (result.status == 'ok') {
-                                    alert('Покупатель успешно создан!');
-                                    this.closeCreateBuyerForm();
-                                } else {
-                                    alert('Ошибка при создании покупателя');
-                                }
-                            })
-                            .catch(error => {
-                                alert('Ошибка при создании покупателя');
-                            });
-                    }
-                },
-                closeCreateBuyerForm() {
-                    this.showCreateBuyerModal = false;
-                    this.newBuyer = { name: '', email: '' };
-                    this.errors = {};
-                },
-                toggleApp(appId) {
-                    const app = this.apps.find(app => app.id === appId);
-                    app.expanded = !app.expanded;
-                },
-        
-                toggleBuyerInfo(buyerId) {
-                    const buyer = this.buyers.find(b => b.id === buyerId);
-                    buyer.showInfo = !buyer.showInfo;
-                },
-        
-                deleteBuyer(buyerId) {
-                    this.buyers = this.buyers.filter(b => b.id !== buyerId);
-                    alert('Покупатель удален!');
-                },
-        
-                openCreateBuyerForm() {
-                    this.newBuyer = { name: '', apps: [] };  // Очистка формы перед созданием
-                    this.showCreateBuyerModal = true;
-                },
-        
-                closeCreateBuyerForm() {
-                    this.showCreateBuyerModal = false;
-                },
-        
-                saveNewBuyer() {
-                    if (this.newBuyer.name && this.newBuyer.email) {
-                        this.buyers.push({
-                            id: Date.now(),
-                            name: this.newBuyer.name,
-                            email: this.newBuyer.email,
-                            showInfo: false,
-                        });
-                        this.closeCreateBuyerForm();
-                    } else {
-                        alert('Имя покупателя не может быть пустым.');
-                    }
-                },
-        
-                sendRequest(url, data, method = 'POST', headers = {}) {
-                    return fetch(url, {
-                        method: method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...headers,
-                        },
-                        body: JSON.stringify(data),
-                    })
-                        .then(response => response.json())
-                        .then(result => {
-                            console.log(result);
-                            if (result.status == 'ok') {
-                                return result;
-                            } else {
-                                console.error('Ошибка:', result.error || 'Неизвестная ошибка');
-                                throw new Error(result.error || 'Неизвестная ошибка');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Ошибка при отправке данных:', error);
-                            throw error;
-                        });
-                },
-        
-                saveGlobalBlockedPages() {
-                    const blockedPages = this.getGlobalBlockedPages();
-        
-                    if (blockedPages.length === 0) {
-                        alert('Нет изменений для сохранения.');
-                        return;
-                    }
-                    this.sendRequest('/ardozlock/saveglobalsblockpages/', { blockedPages })
-                        .then(result => {
-                            if (result.status == 'ok') {
-                                alert('Изменения успешно сохранены');
-                            } else {
-                                alert('Ошибка при сохранении изменений');
-                            }
-                        })
-                        .catch(error => {
-                            alert('Ошибка при сохранении изменений');
-                        });
-                },
-        
-                getGlobalBlockedPages() {
-                    return this.apps.reduce((acc, app) => {
-                        if (!app.selectedPages || app.selectedPages.length === 0) return acc;
-        
-                        app.selectedPages.forEach(pageId => {
-                            const page = app.pages.find(p => p.id === pageId);
-                            if (page) {
-                                acc.push({
-                                    page_id: page.id,
-                                    page_type: app.page_type,          // Учитываем тип страницы
-                                    application_id: app.application_id // Учитываем приложение
-                                });
-                            }
-                        });
-                        return acc;
-                    }, []);
-                },
-                
-                isPageBlocked(pageId, pageType, appId) {
-                    return this.globalBlockedPages.some(
-                        page => page.page_id === pageId &&
-                            page.page_type === pageType &&
-                            page.application_id === appId
-                    );
-                }
-            }
-        });
-        
-        app.mount('#BuyerManagement');
-    </script>
+        },
+        template: `
+            <div class="ardozlock-tab__buttons__list">
+                <button class="ardozlock-tab__button__item" @click="activeTab = 'buyers'">Управление покупателями</button>
+                <button class="ardozlock-tab__button__item" @click="activeTab = 'closedpages'">Блокировка страниц</button>
+            </div>
+            <div class="ardozlock-tab__contents__list">
+                <buyers-management v-if="isActiveBuyersTab"></buyers-management>
+                <global-blocked-pages v-if="isActiveClosedPagesTab"></global-blocked-pages>
+            </div>
+        `
+    });
+
+    app.mount('#BuyerManagement');
+</script>
 {/literal}
