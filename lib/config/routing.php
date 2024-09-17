@@ -5,5 +5,8 @@ return array (
   'ardozlock/savebuyer/' => 'frontend/savebuyer/',
   'ardozlock/getbuyers/' => 'frontend/getbuyers/',
   'ardozlock/getglobalblockedpages/' => 'frontend/getglobalblockedpages/',
-  'ardozlock/blockedbuyerpages/' => 'frontend/blockedbuyerpages/',
+  'ardozlock/unlockedbuyerpages/' => 'frontend/unlockedbuyerpages/', // Получение разблокированных страниц
+  'ardozlock/getunlockedbuyerspages/<buyer_id>/' => 'frontend/getunlockedbuyerspages/', // Получение списка разблокированных страниц для конкретного покупателя
+  'ardozlock/saveunlockedbuyerspages/' => 'frontend/saveunlockedbuyerspages/', // Сохранение разблокированных страниц для покупателя
+
 );

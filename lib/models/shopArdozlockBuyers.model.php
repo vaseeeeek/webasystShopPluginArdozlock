@@ -37,4 +37,9 @@ class shopArdozlockBuyersModel extends waModel
     {
         return $this->getAll();
     }
+    
+    public function getBuyerByHash($hash)
+    {
+        return $this->getByField('hash', $hash);
+    }
 }

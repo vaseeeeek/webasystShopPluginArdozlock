@@ -14,10 +14,10 @@ class shopArdozlockPluginFrontendSaveBlockedPagesController extends waJsonContro
                 throw new waException('Invalid data');
             }
 
-            $blockedPagesModel = new shopArdozlockBlockedbuyerpagesModel();
+            $blockedPagesModel = new shopArdozlockUnlockedbuyerpagesModel();
 
             // Удаляем старые записи
-            $blockedPagesModel->deleteBlockedPagesByBuyer($buyer_id);
+            $blockedPagesModel->getUnlockedPagesByBuyer($buyer_id);
 
             // Добавляем новые записи
             $blockedPagesModel->addBlockedPagesForBuyer($buyer_id, $blockedPages);

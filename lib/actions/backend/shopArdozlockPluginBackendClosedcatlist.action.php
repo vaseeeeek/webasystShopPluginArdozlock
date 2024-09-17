@@ -50,7 +50,8 @@ class shopArdozlockPluginBackendClosedcatlistAction extends waViewAction
             $prefix = str_repeat('— ', $category['depth']);
             $preparedCategories[] = [
                 'id' => $category['id'],
-                'name' => $prefix . $category['name']
+                'name' => $prefix . $category['name'],
+                'url' => "/" . $category['full_url'] . "/"
             ];
         }
         return $preparedCategories;

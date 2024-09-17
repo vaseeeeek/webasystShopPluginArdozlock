@@ -9,40 +9,14 @@ export default {
     data() {
         return {
             searchQuery: '',
-            buyers: [
-                {
-                    id: 'buyer1',
-                    name: 'Иван Иванов',
-                    showInfo: false,
-                    apps: [
-                        {
-                            name: 'Блог',
-                            pages: [
-                                { name: 'Главная страница', access: true },
-                                { name: 'Страница постов', access: false }
-                            ]
-                        },
-                        {
-                            name: 'Магазин',
-                            pages: [
-                                { name: 'Корзина', access: true },
-                                { name: 'Каталог товаров', access: false }
-                            ]
-                        }
-                    ],
-                    blockedPages: [] // Покупатель может "разблокировать" некоторые страницы
-                }
-            ],
+            buyers: [], // Список покупателей, загружаемый с сервера
             showCreateBuyerModal: false,
             newBuyer: { name: '', email: '' },
-            globalBlockedPages: [], // Глобально заблокированные страницы (из GlobalBlockedPages)
             errors: {},
         };
     },
     created() {
         this.fetchBuyers();  // Загрузка списка покупателей при загрузке компонента
-        // Загружаем список глобально заблокированных страниц
-        this.fetchGlobalBlockedPages();
     },
     computed: {
         // Фильтрация списка покупателей по введённому поисковому запросу
@@ -55,32 +29,17 @@ export default {
         }
     },
     methods: {
-        fetchGlobalBlockedPages() {
-            sendRequest('/ardozlock/getglobalblockedpages/', {})
+        // Получение списка покупателей с сервера
+        fetchBuyers() {
+            sendRequest('/ardozlock/getbuyers/', {})
                 .then(result => {
-                    this.globalBlockedPages = result.data.blockedPages;
+                    this.buyers = result.data.buyers; // Получаем актуальный список покупателей
                 })
                 .catch(error => {
-                    console.error('Ошибка при загрузке глобальных заблокированных страниц:', error);
+                    console.error('Ошибка при загрузке покупателей:', error);
                 });
         },
-        updateBlockedPages(buyer, blockedPages) {
-            buyer.blockedPages = blockedPages;
-            sendRequest('/ardozlock/saveblockedbuyerspages/', {
-                buyer_id: buyer.id,
-                blockedPages: buyer.blockedPages
-            })
-            .then(result => {
-                if (result.status === 'ok') {
-                    alert('Заблокированные страницы успешно сохранены!');
-                } else {
-                    alert('Ошибка при сохранении изменений');
-                }
-            })
-            .catch(error => {
-                alert('Ошибка при сохранении страниц');
-            });
-        },
+        // Создание нового покупателя
         submitNewBuyer() {
             if (this.validateForm()) {
                 const buyerData = {
@@ -91,7 +50,7 @@ export default {
                     .then(result => {
                         if (result.status === 'ok') {
                             alert('Покупатель успешно создан!');
-                            this.fetchBuyers();  // Обновляем список покупателей с сервера
+                            this.fetchBuyers();  // Обновляем список покупателей
                             this.closeCreateBuyerForm();
                         } else {
                             alert('Ошибка при создании покупателя');
@@ -102,15 +61,6 @@ export default {
                     });
             }
         },
-        fetchBuyers() {
-            sendRequest('/ardozlock/getbuyers/', {})
-                .then(result => {
-                    this.buyers = result.data.buyers; // Получаем актуальный список покупателей
-                })
-                .catch(error => {
-                    console.error('Ошибка при загрузке покупателей:', error);
-                });
-        },
         // Валидация формы создания покупателя
         validateForm() {
             this.errors = {};
@@ -120,16 +70,22 @@ export default {
         },
         // Удаление покупателя
         deleteBuyer(buyerId) {
-            this.buyers = this.buyers.filter(b => b.id !== buyerId);
-            alert('Покупатель удален!');
+            sendRequest(`/ardozlock/deletebuyer/${buyerId}`, {}, 'DELETE')
+                .then(result => {
+                    if (result.status === 'ok') {
+                        alert('Покупатель удален!');
+                        this.fetchBuyers();  // Обновляем список покупателей
+                    } else {
+                        alert('Ошибка при удалении покупателя');
+                    }
+                })
+                .catch(error => {
+                    alert('Ошибка при удалении покупателя');
+                });
         },
         // Показ/скрытие информации о покупателе
         toggleBuyerInfo(buyerId) {
             const buyer = this.buyers.find(b => b.id === buyerId);
-            // Инициализация blockedPages как пустого массива, если данные отсутствуют
-            if (!buyer.blockedPages) {
-                buyer.blockedPages = []; // В Vue 3 это автоматически реактивно
-            }
             buyer.showInfo = !buyer.showInfo;
         },
         // Открытие формы для создания нового покупателя
@@ -151,27 +107,25 @@ export default {
                 </div>
 
                 <ul id="buyer-list">
-                <li class="ardozlock-buyer__buyer-item" v-for="buyer in filteredBuyers" :key="buyer.id" @click="toggleBuyerInfo(buyer.id)">
-                    <span class="ardozlock-buyer__buyer-name">[[ buyer.name ]]</span>
-                    <button class="ardozlock-buyer__button ardozlock-buyer__button--delete" @click.stop="deleteBuyer(buyer.id)">Удалить</button>
-                
-                    <div class="ardozlock-buyer__buyer-info" v-if="buyer.showInfo">
-                        <div class="ardozlock-buyer__app-card" v-for="app in buyer.apps" :key="app.name">
-                            <h5>[[ app.name ]]</h5>
-                            <label v-for="page in app.pages" :key="page.id">
-                                <input type="checkbox" v-model="page.access" @click.stop> [[ page.name ]]
-                            </label>
+                    <li class="ardozlock-buyer__buyer-item" v-for="buyer in filteredBuyers" :key="buyer.id" @click="toggleBuyerInfo(buyer.id)">
+                        <span class="ardozlock-buyer__buyer-name">[[ buyer.name ]]</span>
+                        <button class="ardozlock-buyer__button ardozlock-buyer__button--delete" @click.stop="deleteBuyer(buyer.id)">Удалить</button>
+
+                        <div class="ardozlock-buyer__buyer-info" v-if="buyer.showInfo">
+                            <div class="ardozlock-buyer__app-card" v-for="app in buyer.apps" :key="app.name">
+                                <h5>[[ app.name ]]</h5>
+                                <label v-for="page in app.pages" :key="page.id">
+                                    <input type="checkbox" v-model="page.access" @click.stop> [[ page.name ]]
+                                </label>
+                            </div>
+
+                            <!-- Включаем компонент выбора заблокированных страниц -->
+                            <blocked-pages-selector 
+                                :buyer-id="buyer.id" 
+                                @click.stop/>
                         </div>
-                
-                        <!-- Включаем компонент выбора заблокированных страниц -->
-                        <blocked-pages-selector
-                            :blocked-pages="buyer.blockedPages"
-                            :available-pages="globalBlockedPages"
-                            @click.stop
-                            @update-blocked-pages="updateBlockedPages(buyer, $event)">
-                        </blocked-pages-selector>
-                    </div>
-                </li>
+
+                    </li>
                 </ul>
             </div>
         </div>

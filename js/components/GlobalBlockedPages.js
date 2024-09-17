@@ -4,7 +4,7 @@ export default {
 
     delimiters: ['[[', ']]'],
     data() {
-        return {
+        return {    
             apps: [
                 {
                     id: 'shop-cat',

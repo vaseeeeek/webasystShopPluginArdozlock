@@ -5,11 +5,13 @@ return [
         'id' => ['int', 11, 'null' => 0, 'autoincrement' => 1],
         'name' => ['varchar', 255, 'null' => 0],
         'email' => ['varchar', 255, 'null' => 0],
+        'hash' => ['varchar', 255, 'null' => 0], 
         ':keys' => [
-            'PRIMARY' => ['id'], // Primary key definition
+            'PRIMARY' => ['id'],
+            'hash' => ['hash'], 
         ],
     ],
-    'shop_ardozlock_blocked_pages' => [
+    'shop_ardozlock_unlocked_pages' => [
         'id' => ['int', 11, 'null' => 0, 'autoincrement' => 1],
         'buyer_id' => ['int', 11, 'null' => 0],
         'page_id' => ['int', 11, 'null' => 0],

@@ -8,7 +8,7 @@ class shopArdozlockBuyerService
     public function __construct()
     {
         $this->buyersModel = new shopArdozlockBuyersModel();
-        $this->blockedPagesModel = new shopArdozlockBlockedbuyerpagesModel();
+        $this->blockedPagesModel = new shopArdozlockUnlockedbuyerpagesModel();
     }
 
     /**
@@ -22,7 +22,7 @@ class shopArdozlockBuyerService
         $allBuyersData = [];
 
         foreach ($buyers as $buyer) {
-            $blockedPages = $this->blockedPagesModel->getBlockedPagesByBuyer($buyer['id']);
+            $blockedPages = $this->blockedPagesModel->getUnlockedPagesByBuyer($buyer['id']);
             $apps = $this->structureBlockedPagesByApps($blockedPages);
             $allBuyersData[] = [
                 'id' => $buyer['id'],
