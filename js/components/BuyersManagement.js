@@ -122,6 +122,7 @@ export default {
                             <!-- Включаем компонент выбора заблокированных страниц -->
                             <blocked-pages-selector 
                                 :buyer-id="buyer.id" 
+                                :buyer-hash="buyer.hash" 
                                 @click.stop/>
                         </div>
 

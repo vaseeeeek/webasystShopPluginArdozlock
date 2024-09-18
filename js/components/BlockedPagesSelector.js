@@ -6,6 +6,10 @@ export default {
         buyerId: {
             type: String,
             required: true
+        },
+        buyerHash: {
+            type: String,
+            required: true
         }
     },
     data() {
@@ -107,7 +111,7 @@ export default {
         },
         // Копирование ссылки в буфер обмена
         copyToClipboard(pageUrl) {
-            const fullUrl = `${window.location.origin}${pageUrl}`; // Формирование полного URL с доменом
+            const fullUrl = `${window.location.origin}${pageUrl}?hash=${this.buyerHash}`;
             navigator.clipboard.writeText(fullUrl)
                 .then(() => {
                     alert('Ссылка скопирована: ' + fullUrl);
