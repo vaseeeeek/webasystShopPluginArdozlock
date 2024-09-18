@@ -110,8 +110,14 @@ export default {
             return { name: pageName, url: pageUrl }; // Возвращаем имя и URL страницы
         },
         // Копирование ссылки в буфер обмена
-        copyToClipboard(pageUrl) {
-            const fullUrl = `${window.location.origin}${pageUrl}?hash=${this.buyerHash}`;
+        copyToClipboard(pageUrl,pageType) {
+            let adjustedUrl = pageUrl;
+        
+            if (pageType === 'category') {
+                adjustedUrl = `/category${pageUrl}`; // Добавляем "/category" в начало URL
+            }
+        
+            const fullUrl = `${window.location.origin}${adjustedUrl}?hash=${this.buyerHash}`;
             navigator.clipboard.writeText(fullUrl)
                 .then(() => {
                     alert('Ссылка скопирована: ' + fullUrl);
@@ -187,10 +193,10 @@ export default {
                                     :checked="unlockedPagesByApp[app.id].includes(page.page_id)" 
                                     @change="togglePageSelection(app.id, page.page_id)" 
                                 />
-                                [[ getPageNameById(page.page_id, page.page_type, page.application_id).name ]] <!-- Имя страницы -->
+                                [[ getPageNameById(page.page_id, page.page_type, page.application_id).name ]]
                             </label>
                             <button 
-                                @click="copyToClipboard(getPageNameById(page.page_id, page.page_type, page.application_id).url)" 
+                                @click="copyToClipboard(getPageNameById(page.page_id, page.page_type, page.application_id).url, page.page_type)" 
                                 class="blocked-pages-selector__copy-btn">
                                 Скопировать ссылку
                             </button>

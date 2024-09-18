@@ -11,17 +11,16 @@ export default {
     data() {
         return {
             searchQuery: '',
-            buyers: [], // Список покупателей, загружаемый с сервера
+            buyers: [],
             showCreateBuyerModal: false,
             newBuyer: { name: '', email: '' },
             errors: {},
         };
     },
     created() {
-        this.fetchBuyers();  // Загрузка списка покупателей при загрузке компонента
+        this.fetchBuyers();
     },
     computed: {
-        // Фильтрация списка покупателей по введённому поисковому запросу
         filteredBuyers() {
             const query = this.searchQuery.toLowerCase();
             if (!query) {
@@ -31,17 +30,15 @@ export default {
         }
     },
     methods: {
-        // Получение списка покупателей с сервера
         fetchBuyers() {
             sendRequest('/ardozlock/getbuyers/', {})
                 .then(result => {
-                    this.buyers = result.data.buyers; // Получаем актуальный список покупателей
+                    this.buyers = result.data.buyers;
                 })
                 .catch(error => {
                     console.error('Ошибка при загрузке покупателей:', error);
                 });
         },
-        // Создание нового покупателя
         submitNewBuyer() {
             if (this.validateForm()) {
                 const buyerData = {
@@ -52,7 +49,7 @@ export default {
                     .then(result => {
                         if (result.status === 'ok') {
                             alert('Покупатель успешно создан!');
-                            this.fetchBuyers();  // Обновляем список покупателей
+                            this.fetchBuyers();
                             this.closeCreateBuyerForm();
                         } else {
                             alert('Ошибка при создании покупателя');
@@ -63,20 +60,18 @@ export default {
                     });
             }
         },
-        // Валидация формы создания покупателя
         validateForm() {
             this.errors = {};
             if (!this.newBuyer.name) this.errors.name = 'Имя покупателя обязательно';
             if (!this.newBuyer.email) this.errors.email = 'Email обязателен';
             return Object.keys(this.errors).length === 0;
         },
-        // Удаление покупателя
         deleteBuyer(buyerId) {
             sendRequest(`/ardozlock/deletebuyer/${buyerId}`, {}, 'DELETE')
                 .then(result => {
                     if (result.status === 'ok') {
                         alert('Покупатель удален!');
-                        this.fetchBuyers();  // Обновляем список покупателей
+                        this.fetchBuyers();
                     } else {
                         alert('Ошибка при удалении покупателя');
                     }
@@ -85,17 +80,14 @@ export default {
                     alert('Ошибка при удалении покупателя');
                 });
         },
-        // Показ/скрытие информации о покупателе
         toggleBuyerInfo(buyerId) {
             const buyer = this.buyers.find(b => b.id === buyerId);
             buyer.showInfo = !buyer.showInfo;
         },
-        // Открытие формы для создания нового покупателя
         openCreateBuyerForm() {
             this.newBuyer = { name: '', email: '' };
             this.showCreateBuyerModal = true;
         },
-        // Закрытие формы создания покупателя
         closeCreateBuyerForm() {
             this.showCreateBuyerModal = false;
         }
