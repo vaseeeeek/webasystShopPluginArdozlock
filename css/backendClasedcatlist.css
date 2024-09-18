@@ -455,7 +455,7 @@
 
 .blocked-pages-selector {
     padding: 15px;
-    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 4px;
     margin-top: 10px;
     background-color: #f9f9f9;
@@ -563,7 +563,7 @@
 .blocked-pages-selector__pages-list {
     padding: 10px;
     background-color: #f9f9f9;
-    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 4px;
     max-height: 300px; /* Ограничение высоты для прокрутки */
     overflow-y: auto;
@@ -623,4 +623,44 @@
     .blocked-pages-selector__copy-btn {
         margin-top: 5px;
     }
+}
+.access-duration-selector {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    /* margin: 20px auto; */
+    font-family: Arial, sans-serif;
+}
+
+.access-duration-selector label {
+    font-weight: bold;
+    color: #333;
+}
+
+.access-duration-selector input[type="number"] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.access-start-date, .remaining-days {
+    margin-top: 15px;
+}
+
+.access-start-date label, .remaining-days label {
+    font-size: 14px;
+    color: #666;
+}
+
+.access-duration-selector input[type="number"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }

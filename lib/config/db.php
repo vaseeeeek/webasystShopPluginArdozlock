@@ -6,6 +6,8 @@ return [
         'name' => ['varchar', 255, 'null' => 0],
         'email' => ['varchar', 255, 'null' => 0],
         'hash' => ['varchar', 255, 'null' => 0], 
+        'access_start_date' => ['date', 'null' => 1],
+        'access_duration_days' => ['int', 11, 'null' => 1, 'default' => 30],
         ':keys' => [
             'PRIMARY' => ['id'],
             'hash' => ['hash'], 

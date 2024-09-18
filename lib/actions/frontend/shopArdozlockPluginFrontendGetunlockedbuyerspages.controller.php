@@ -4,7 +4,7 @@ class shopArdozlockPluginFrontendGetunlockedbuyerspagesController extends waJson
 {
     public function execute()
     {
-        $buyer_id = waRequest::param('buyer_id'); // Получаем buyer_id из URL
+        $buyer_id = waRequest::param('buyer_id');
 
         // Логика для получения разблокированных страниц покупателя
         $unlockedPagesModel = new shopArdozlockUnlockedbuyerpagesModel();

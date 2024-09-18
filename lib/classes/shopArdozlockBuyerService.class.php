@@ -3,12 +3,56 @@
 class shopArdozlockBuyerService
 {
     protected $buyersModel;
-    protected $blockedPagesModel;
+    protected $unlockedPagesModel;
 
     public function __construct()
     {
         $this->buyersModel = new shopArdozlockBuyersModel();
-        $this->blockedPagesModel = new shopArdozlockUnlockedbuyerpagesModel();
+        $this->unlockedPagesModel = new shopArdozlockUnlockedbuyerpagesModel();
+    }
+
+    /**
+     * Установить срок доступа для покупателя.
+     *
+     * @param int $buyer_id ID покупателя
+     * @param int $access_duration_days Срок доступа в днях
+     */
+    public function setBuyerAccessDuration($buyer_id, $access_duration_days)
+    {
+        $this->buyersModel->setAccessDuration($buyer_id, $access_duration_days);
+    }
+
+    /**
+     * Проверка доступности страницы в зависимости от срока доступа.
+     *
+     * @param int $buyer_id ID покупателя
+     * @return bool Доступ разрешен или нет
+     */
+    public function isAccessAllowed($buyer_id)
+    {
+        $access_end_date = $this->buyersModel->getAccessEndDate($buyer_id);
+
+        if ($access_end_date) {
+            $current_date = date('Y-m-d');
+            return $current_date <= $access_end_date;
+        }
+
+        // Если срок не установлен или истек, доступ запрещен
+        return false;
+    }
+
+    /**
+     * Установить дату начала доступа, если она еще не установлена.
+     *
+     * @param int $buyer_id ID покупателя
+     */
+    public function setAccessStartDateIfNotSet($buyer_id)
+    {
+        $buyer = $this->buyersModel->getById($buyer_id);
+
+        if (empty($buyer['access_start_date'])) {
+            $this->buyersModel->setAccessStartDate($buyer_id, date('Y-m-d'));
+        }
     }
 
     /**
@@ -22,7 +66,7 @@ class shopArdozlockBuyerService
         $allBuyersData = [];
 
         foreach ($buyers as $buyer) {
-            $blockedPages = $this->blockedPagesModel->getUnlockedPagesByBuyer($buyer['id']);
+            $blockedPages = $this->unlockedPagesModel->getUnlockedPagesByBuyer($buyer['id']);
             $apps = $this->structureBlockedPagesByApps($blockedPages);
             $allBuyersData[] = [
                 'id' => $buyer['id'],

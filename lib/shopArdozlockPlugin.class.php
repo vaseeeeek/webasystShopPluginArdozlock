@@ -20,92 +20,103 @@ class shopArdozlockPlugin extends shopPlugin
 		$config->addItem('ardozlock_header', 'Закрытые категории', 'header', array('cssclass' => 'c-access-subcontrol-header', 'tag' => 'div'));
 		$config->addItem(self::RIGHT_BACKEND, 'Доступ к списку', 'checkbox', array('cssclass' => 'c-access-subcontrol-item'));
 	}
+	
+    /**
+     * Проверяет доступность страницы для текущего пользователя и устанавливает куку с хешем.
+     *
+     * @param string $application_id Идентификатор приложения (например, 'shop', 'site')
+     * @param string $page_type Тип страницы (например, 'infopage', 'category')
+     * @param int $page_id Идентификатор страницы
+     * @return bool Возвращает true, если страница доступна, и false, если она заблокирована
+     */
+    public static function checkPageStatus($application_id, $page_type, $page_id)
+    {
+        try {
+            waLog::log("Начало проверки доступа для страницы: application_id={$application_id}, page_type={$page_type}, page_id={$page_id}", 'ardozlock.log');
 
-	/**
-	 * Проверяет доступность страницы для текущего пользователя и устанавливает куку с хешем.
-	 *
-	 * @param string $application_id Идентификатор приложения (например, 'shop', 'site')
-	 * @param string $page_type Тип страницы (например, 'infopage', 'category')
-	 * @param int $page_id Идентификатор страницы
-	 * @return bool Возвращает true, если страница доступна, и false, если она заблокирована
-	 */
-	public static function checkPageStatus($application_id, $page_type, $page_id)
-	{
-		try {
-			waLog::log("Начало проверки доступа для страницы: application_id={$application_id}, page_type={$page_type}, page_id={$page_id}", 'ardozlock.log');
+            // Валидация входных данных
+            if (!$application_id || !$page_type || !$page_id) {
+                throw new waException('Не указаны все обязательные параметры.');
+            }
 
-			// Валидация входных данных
-			if (!$application_id || !$page_type || !$page_id) {
-				throw new waException('Не указаны все обязательные параметры.');
-			}
+            // Инициализация модели глобально заблокированных страниц
+            $globalBlockedPagesModel = new shopArdozlockGlobalblockedpagesModel();
 
-			// Инициализация модели глобально заблокированных страниц
-			$globalBlockedPagesModel = new shopArdozlockGlobalblockedpagesModel();
+            // Проверяем, заблокирована ли страница глобально
+            $globalBlockedPage = $globalBlockedPagesModel->getByField([
+                'page_id' => $page_id,
+                'page_type' => $page_type,
+                'application_id' => $application_id,
+            ]);
 
-			// Проверяем, заблокирована ли страница глобально
-			$globalBlockedPage = $globalBlockedPagesModel->getByField([
-				'page_id' => $page_id,
-				'page_type' => $page_type,
-				'application_id' => $application_id,
-			]);
+            // Если страница не заблокирована глобально, доступ разрешен
+            if (!$globalBlockedPage) {
+                waLog::log("Страница не заблокирована глобально, доступ разрешен.", 'ardozlock.log');
+                return true; // Страница доступна
+            }
 
-			// Если страница не заблокирована глобально, доступ разрешен
-			if (!$globalBlockedPage) {
-				waLog::log("Страница не заблокирована глобально, доступ разрешен.", 'ardozlock.log');
-				return true; // Страница доступна
-			}
+            // Если страница заблокирована, проверяем наличие хеша в URL или куках
+            $hash = waRequest::get('hash', null, 'string');
 
-			// Если страница заблокирована, проверяем наличие хеша в URL или куках
-			$hash = waRequest::get('hash', null, 'string');
+            // Если хеша в URL нет, ищем его в куках
+            if (!$hash) {
+                $hash = waRequest::cookie('buyer_hash', null, 'string');
+            }
 
-			// Если хеша в URL нет, ищем его в куках
-			if (!$hash) {
-				$hash = waRequest::cookie('buyer_hash', null, 'string');
-			}
+            // Если найден хеш, ищем покупателя по хешу
+            if ($hash) {
+                waLog::log("Найден хеш: {$hash}", 'ardozlock.log');
 
-			// Если найден хеш, ищем покупателя по хешу
-			if ($hash) {
-				waLog::log("Найден хеш: {$hash}", 'ardozlock.log');
+                $buyersModel = new shopArdozlockBuyersModel();
+                $buyer = $buyersModel->getByField('hash', $hash);
 
-				$buyersModel = new shopArdozlockBuyersModel();
-				$buyer = $buyersModel->getByField('hash', $hash);
+                // Если покупатель найден, проверяем его доступ к странице
+                if ($buyer) {
+                    waLog::log("Найден покупатель с ID: {$buyer['id']}, устанавливаем куку.", 'ardozlock.log');
 
-				// Если покупатель найден, проверяем его доступ к странице
-				if ($buyer) {
-					waLog::log("Найден покупатель с ID: {$buyer['id']}, устанавливаем куку.", 'ardozlock.log');
+                    // Устанавливаем куку с хешем для покупателя (срок действия - 1 день)
+                    wa()->getResponse()->setCookie('buyer_hash', $hash, time() + 1 * 86400); // Кука на 1 день
 
-					// Устанавливаем куку с хешем для покупателя (срок действия - 1 дней)
-					wa()->getResponse()->setCookie('buyer_hash', $hash, time() + 1 * 86400); // Кука на 30 дней
+                    // Проверяем дату начала использования доступа
+                    $buyerService = new shopArdozlockBuyerService();
+                    $buyerService->setAccessStartDateIfNotSet($buyer['id']);  // Установить дату начала использования, если еще не установлена
 
-					$unlockedPagesModel = new shopArdozlockUnlockedbuyerpagesModel();
-					$unlockedPage = $unlockedPagesModel->getByField([
-						'buyer_id' => $buyer['id'],
-						'page_id' => $page_id,
-						'page_type' => $page_type,
-						'application_id' => $application_id,
-					]);
+                    // Проверяем, не истек ли срок доступа
+                    if (!$buyerService->isAccessAllowed($buyer['id'])) {
+                        waLog::log("Срок доступа истек для покупателя с ID: {$buyer['id']}.", 'ardozlock.log');
+                        return false; // Срок доступа истек, доступ запрещен
+                    }
 
-					// Если страница разблокирована для покупателя, доступ разрешен
-					if ($unlockedPage) {
-						waLog::log("Страница разблокирована для покупателя, доступ разрешен.", 'ardozlock.log');
-						return true;
-					} else {
-						waLog::log("Страница не разблокирована для покупателя, доступ запрещен.", 'ardozlock.log');
-					}
-				} else {
-					waLog::log("Покупатель с указанным хешем не найден.", 'ardozlock.log');
-				}
-			} else {
-				waLog::log("Хеш не найден в URL или куках.", 'ardozlock.log');
-			}
+                    // Проверяем, разблокирована ли страница для покупателя
+                    $unlockedPagesModel = new shopArdozlockUnlockedbuyerpagesModel();
+                    $unlockedPage = $unlockedPagesModel->getByField([
+                        'buyer_id' => $buyer['id'],
+                        'page_id' => $page_id,
+                        'page_type' => $page_type,
+                        'application_id' => $application_id,
+                    ]);
 
-			// Если хеш не найден или доступ не разрешен, доступ запрещен
-			waLog::log("Доступ к странице запрещен.", 'ardozlock.log');
-			return false;
-		} catch (waException $e) {
-			// Логируем ошибку
-			waLog::log("Ошибка при проверке доступа к странице: " . $e->getMessage(), 'ardozlock.log');
-			return false; // В случае ошибки доступ запрещаем
-		}
-	}
+                    // Если страница разблокирована для покупателя, доступ разрешен
+                    if ($unlockedPage) {
+                        waLog::log("Страница разблокирована для покупателя, доступ разрешен.", 'ardozlock.log');
+                        return true;
+                    } else {
+                        waLog::log("Страница не разблокирована для покупателя, доступ запрещен.", 'ardozlock.log');
+                    }
+                } else {
+                    waLog::log("Покупатель с указанным хешем не найден.", 'ardozlock.log');
+                }
+            } else {
+                waLog::log("Хеш не найден в URL или куках.", 'ardozlock.log');
+            }
+
+            // Если хеш не найден или доступ не разрешен, доступ запрещен
+            waLog::log("Доступ к странице запрещен.", 'ardozlock.log');
+            return false;
+        } catch (waException $e) {
+            // Логируем ошибку
+            waLog::log("Ошибка при проверке доступа к странице: " . $e->getMessage(), 'ardozlock.log');
+            return false; // В случае ошибки доступ запрещаем
+        }
+    }
 }

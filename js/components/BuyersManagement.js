@@ -1,10 +1,12 @@
 import { sendRequest } from '../utils.js';
 import BlockedPagesSelector from './BlockedPagesSelector.js';
+import AccessDurationSelector from './AccessDurationSelector.js';
 
 export default {
     delimiters: ['[[', ']]'],
     components: {
-        'blocked-pages-selector': BlockedPagesSelector
+        'blocked-pages-selector': BlockedPagesSelector,
+        'access-duration-selector': AccessDurationSelector
     },
     data() {
         return {
@@ -118,6 +120,12 @@ export default {
                                     <input type="checkbox" v-model="page.access" @click.stop> [[ page.name ]]
                                 </label>
                             </div>
+                            <access-duration-selector 
+                                :buyer-id="buyer.id"
+                                :access-duration-days.number="Number(buyer.access_duration_days)"
+                                :start-date="buyer.access_start_date"
+                                @click.stop
+                            />
 
                             <!-- Включаем компонент выбора заблокированных страниц -->
                             <blocked-pages-selector 
