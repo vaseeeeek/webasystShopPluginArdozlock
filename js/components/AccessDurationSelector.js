@@ -91,7 +91,25 @@ export default {
             }
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             return new Date(dateString).toLocaleDateString(undefined, options);
-        }
+        },
+
+        resetStartDate() {
+            if (confirm('Вы уверены, что хотите сбросить дату начала доступа?')) {
+                sendRequest(`/ardozlock/resetstartdate/${this.buyerId}/`, {})
+                    .then(result => {
+                        if (result.status === 'ok') {
+                            alert('Дата начала доступа успешно сброшена!');
+                            this.startAccessDate = null;  // Сбрасываем локально отображаемую дату
+                            this.remainingDays = null;  // Сбрасываем оставшиеся дни
+                        } else {
+                            alert('Ошибка при сбросе даты начала доступа');
+                        }
+                    })
+                    .catch(error => {
+                        alert('Ошибка при сбросе даты начала доступа');
+                    });
+            }
+        },
     },
     template: `
         <div class="access-duration-selector">
@@ -104,6 +122,12 @@ export default {
 
             <div v-if="remainingDays !== null" class="remaining-days">
                 <label>Осталось дней до окончания: [[ remainingDays ]]</label>
+            </div>
+
+            <div v-if="startAccessDate" class="reset-start-date">
+                <button @click="resetStartDate" class="reset-date-button">
+                    Сбросить дату начала
+                </button>
             </div>
         </div>
     `

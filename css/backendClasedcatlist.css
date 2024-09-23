@@ -559,13 +559,15 @@
     background-color: #f9f9f9;
     border-top: 1px solid #ddd;
 }
+
 /* Основной контейнер для списка страниц */
 .blocked-pages-selector__pages-list {
     padding: 10px;
     background-color: #f9f9f9;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 4px;
-    max-height: 300px; /* Ограничение высоты для прокрутки */
+    max-height: 300px;
+    /* Ограничение высоты для прокрутки */
     overflow-y: auto;
 }
 
@@ -624,13 +626,13 @@
         margin-top: 5px;
     }
 }
+
 .access-duration-selector {
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 400px;
-    /* margin: 20px auto; */
     font-family: Arial, sans-serif;
 }
 
@@ -650,11 +652,13 @@
     box-sizing: border-box;
 }
 
-.access-start-date, .remaining-days {
+.access-start-date,
+.remaining-days {
     margin-top: 15px;
 }
 
-.access-start-date label, .remaining-days label {
+.access-start-date label,
+.remaining-days label {
     font-size: 14px;
     color: #666;
 }
@@ -663,4 +667,103 @@
     outline: none;
     border-color: #007bff;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Стили для кнопки сброса */
+.reset-date-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #dc3545;
+    /* Красный цвет для кнопки */
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+}
+
+/* Стили при наведении */
+.reset-date-button:hover {
+    background-color: #c82333;
+}
+
+/* Стили при фокусе */
+.reset-date-button:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+}
+
+/* Стили для отключенной кнопки */
+.reset-date-button:disabled {
+    background-color: #e0e0e0;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+.ardozlock-sort-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Расстояние между элементами */
+    margin-bottom: 20px; /* Отступ снизу */
+    font-family: Arial, sans-serif;
+}
+
+.ardozlock-sort-buttons span {
+    font-weight: bold;
+    color: #333;
+}
+
+.ardozlock-sort-buttons button {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+    color: #333;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.ardozlock-sort-buttons button:hover {
+    background-color: #e0e0e0;
+}
+
+.ardozlock-sort-buttons button span {
+    margin-left: 5px; /* Отступ для стрелки сортировки */
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.ardozlock-sort-buttons button:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Активная кнопка сортировки */
+.ardozlock-sort-buttons button.active {
+    background-color: #007bff; /* Синий фон для активной кнопки */
+    color: white; /* Белый цвет текста */
+    font-weight: bold; /* Жирный шрифт */
+    border-color: #0056b3;
+}
+
+.ardozlock-sort-buttons button.active:hover {
+    background-color: #0056b3; /* Темнее при наведении на активную */
+}
+
+.ardozlock-sort-buttons button.active span{
+    color: white; /* Белый цвет текста */
+    font-weight: bold;
+}
+.ardozlock-sort-buttons button.active:hover span{
+    color: white;
 }

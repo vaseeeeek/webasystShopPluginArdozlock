@@ -43,12 +43,13 @@ class shopArdozlockBuyersModel extends waModel
      * @param string $start_date Дата начала (в формате YYYY-MM-DD)
      * @return bool Успешность операции
      */
-    public function setAccessStartDate($buyer_id, $start_date)
+    public function setAccessStartDate($buyer_id, $start_date = null)
     {
         return $this->updateById($buyer_id, [
             'access_start_date' => $start_date,
         ]);
     }
+
 
     /**
      * Сохранение нового покупателя.
@@ -73,7 +74,7 @@ class shopArdozlockBuyersModel extends waModel
         // Сохранение покупателя и возврат его ID
         return $this->insert($buyerData);
     }
-    
+
     /**
      * Получение всех покупателей.
      *
@@ -83,7 +84,7 @@ class shopArdozlockBuyersModel extends waModel
     {
         return $this->getAll();
     }
-    
+
     public function getBuyerByHash($hash)
     {
         return $this->getByField('hash', $hash);

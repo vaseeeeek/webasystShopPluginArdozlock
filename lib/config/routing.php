@@ -11,4 +11,5 @@ return array(
   'ardozlock/saveunlockedbuyerspages/' => 'frontend/saveunlockedbuyerspages/',
   'ardozlock/updatebuyeraccess/<buyer_id>/' => 'frontend/updatebuyeraccess/',
   'ardozlock/deletebuyer/<buyer_id>/' => 'frontend/deletebuyer/',
+  'ardozlock/resetstartdate/<buyer_id>/' => 'frontend/resetstartdate/',
 );

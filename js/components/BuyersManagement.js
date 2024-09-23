@@ -15,6 +15,8 @@ export default {
             showCreateBuyerModal: false,
             newBuyer: { name: '', email: '' },
             errors: {},
+            sortBy: 'name', // Критерий сортировки: 'name' или 'startDate'
+            sortOrder: 'asc'
         };
     },
     created() {
@@ -22,18 +24,58 @@ export default {
     },
     computed: {
         filteredBuyers() {
-            const query = this.searchQuery.toLowerCase();
-            if (!query) {
-                return this.buyers;
-            }
-            return this.buyers.filter(buyer => buyer.name.toLowerCase().includes(query));
+            let filtered = this.buyers.filter(buyer =>
+                buyer.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+            );
+
+            return filtered.sort((a, b) => {
+                let sortFieldA, sortFieldB;
+                if (this.sortBy === 'name') {
+                    sortFieldA = a.name.toLowerCase();
+                    sortFieldB = b.name.toLowerCase();
+                } else if (this.sortBy === 'startDate') {
+                    sortFieldA = new Date(a.access_start_date);
+                    sortFieldB = new Date(b.access_start_date);
+                } else if (this.sortBy === 'remainingDays') {
+                    sortFieldA = a.remainingDays !== null ? a.remainingDays : Infinity;
+                    sortFieldB = b.remainingDays !== null ? b.remainingDays : Infinity;
+                }
+
+                if (sortFieldA < sortFieldB) return this.sortOrder === 'asc' ? -1 : 1;
+                if (sortFieldA > sortFieldB) return this.sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
         }
     },
     methods: {
+        setSortBy(sortBy) {
+            if (this.sortBy === sortBy) {
+                // Если уже сортируем по этому полю, меняем порядок сортировки
+                this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.sortBy = sortBy;
+                this.sortOrder = 'asc'; // По умолчанию по возрастанию
+            }
+        },
         fetchBuyers() {
             sendRequest('/ardozlock/getbuyers/', {})
                 .then(result => {
-                    this.buyers = result.data.buyers;
+                    this.buyers = result.data.buyers.map(buyer => {
+                        // Вычисляем оставшиеся дни
+                        if (buyer.access_start_date && buyer.access_duration_days) {
+                            const startDate = new Date(buyer.access_start_date);
+                            const endDate = new Date(startDate);
+                            endDate.setDate(startDate.getDate() + parseInt(buyer.access_duration_days, 10));
+
+                            const currentDate = new Date();
+                            const remainingTime = endDate - currentDate;
+
+                            buyer.remainingDays = remainingTime > 0 ? Math.ceil(remainingTime / (1000 * 60 * 60 * 24)) : 0;
+                        } else {
+                            buyer.remainingDays = null;
+                        }
+                        return buyer;
+                    });
                 })
                 .catch(error => {
                     console.error('Ошибка при загрузке покупателей:', error);
@@ -99,6 +141,33 @@ export default {
                     <input class="ardozlock-buyer__search" type="text" v-model="searchQuery" placeholder="Поиск покупателя...">
                     <button class="ardozlock-buyer__button ardozlock-buyer__button--create" @click="openCreateBuyerForm">Создать покупателя</button>
                 </div>
+
+                <!-- Кнопки сортировки -->
+                <div class="ardozlock-sort-buttons">
+                    <span>
+                        Сортировка по: 
+                    </span>
+                    <button 
+                        @click="setSortBy('name')" 
+                        :class="{ active: sortBy === 'name' }">
+                        Имени
+                        <span v-if="sortBy === 'name'">[[ sortOrder === 'asc' ? '↑' : '↓' ]]</span>
+                    </button>
+                    <button 
+                        @click="setSortBy('startDate')" 
+                        :class="{ active: sortBy === 'startDate' }">
+                        Дате активации
+                        <span v-if="sortBy === 'startDate'">[[ sortOrder === 'asc' ? '↑' : '↓' ]]</span>
+                    </button>
+                    <button 
+                        @click="setSortBy('remainingDays')" 
+                        :class="{ active: sortBy === 'remainingDays' }">
+                        Оставшемуся времени
+                        <span v-if="sortBy === 'remainingDays'">[[ sortOrder === 'asc' ? '↑' : '↓' ]]</span>
+                    </button>
+                </div>
+
+
 
                 <ul id="buyer-list">
                     <li class="ardozlock-buyer__buyer-item" v-for="buyer in filteredBuyers" :key="buyer.id" @click="toggleBuyerInfo(buyer.id)">
