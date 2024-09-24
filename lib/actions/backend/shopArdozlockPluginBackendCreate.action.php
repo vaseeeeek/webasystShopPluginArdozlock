@@ -4,7 +4,6 @@ class shopArdozlockPluginBackendCreateAction extends waViewAction
     public function execute()
     {
         $post = waRequest::post();
-        waLog::dump($post);
         $category_ids = waRequest::post('category_id');
         $expires_at = waRequest::post('expires_at');
         $email = waRequest::post('email');
