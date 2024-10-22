@@ -1,12 +1,16 @@
 import { sendRequest } from '../utils.js';
 import BlockedPagesSelector from './BlockedPagesSelector.js';
 import AccessDurationSelector from './AccessDurationSelector.js';
+import EditBuyerProfile from './EditBuyerProfile.js';
+import ResetAllActivationDates from './ResetAllActivationDates.js';
 
 export default {
     delimiters: ['[[', ']]'],
     components: {
         'blocked-pages-selector': BlockedPagesSelector,
-        'access-duration-selector': AccessDurationSelector
+        'access-duration-selector': AccessDurationSelector,
+        'edit-buyer-profile': EditBuyerProfile,
+        'reset-all-users-activated-date': ResetAllActivationDates,
     },
     data() {
         return {
@@ -16,7 +20,8 @@ export default {
             newBuyer: { name: '', email: '' },
             errors: {},
             sortBy: 'name', // Критерий сортировки: 'name' или 'startDate'
-            sortOrder: 'asc'
+            sortOrder: 'asc',
+            editBuyer: null
         };
     },
     created() {
@@ -48,6 +53,21 @@ export default {
         }
     },
     methods: {
+        openEditBuyer(buyer) {
+            this.editBuyer = { ...buyer };
+        },
+        closeEditBuyer() {
+            this.editBuyer = null;
+        },
+        updateBuyerProfile(updatedData) {
+            // Обновление данных покупателя в списке
+            const buyer = this.buyers.find(b => b.id === this.editBuyer.id);
+            if (buyer) {
+                buyer.name = updatedData.name;
+                buyer.email = updatedData.email;
+            }
+            this.closeEditBuyer();
+        },
         setSortBy(sortBy) {
             if (this.sortBy === sortBy) {
                 // Если уже сортируем по этому полю, меняем порядок сортировки
@@ -132,10 +152,33 @@ export default {
         },
         closeCreateBuyerForm() {
             this.showCreateBuyerModal = false;
+        },
+        sendEmailToBuyer(buyerId) {
+            if (confirm('Вы уверены, что хотите отправить письмо этому клиенту?')) {
+                sendRequest(`/ardozlock/sendemail/${buyerId}/`, {}, 'POST')
+                .then(response => {
+                    if (response.status === 'ok') {
+                    alert('Письмо успешно отправлено!');
+                    } else {
+                    alert('Ошибка при отправке письма');
+                    }
+                })
+                .catch(error => {
+                    alert('Ошибка при отправке запроса');
+                    console.error(error);
+                });
+            }
         }
     },
     template: `
         <div class="ardozlock-tab__contents__item">
+            <div v-if="editBuyer" class="edit-buyer-modal">
+                <edit-buyer-profile 
+                    :buyer="editBuyer" 
+                    @profile-updated="updateBuyerProfile" 
+                    @close="closeEditBuyer"
+                />
+            </div>
             <div class="ardozlock-buyer__buyer-management">
                 <div class="ardozlock-buyer__header">
                     <input class="ardozlock-buyer__search" type="text" v-model="searchQuery" placeholder="Поиск покупателя...">
@@ -165,6 +208,8 @@ export default {
                         Оставшемуся времени
                         <span v-if="sortBy === 'remainingDays'">[[ sortOrder === 'asc' ? '↑' : '↓' ]]</span>
                     </button>
+                    
+                    <reset-all-users-activated-date>
                 </div>
 
 
@@ -173,6 +218,13 @@ export default {
                     <li class="ardozlock-buyer__buyer-item" v-for="buyer in filteredBuyers" :key="buyer.id" @click="toggleBuyerInfo(buyer.id)">
                         <span class="ardozlock-buyer__buyer-name">[[ buyer.name ]]</span>
                         <button class="ardozlock-buyer__button ardozlock-buyer__button--delete" @click.stop="deleteBuyer(buyer.id)">Удалить</button>
+                        <button @click.stop="openEditBuyer(buyer)" class="ardozlock-buyer__button ardozlock-buyer__button--edit">
+                            Редактировать
+                        </button>
+                        <button class="ardozlock-buyer__button ardozlock-buyer__button--mail" @click.stop="sendEmailToBuyer(buyer.id)">
+                            Отправить письмо
+                        </button>
+
 
                         <div class="ardozlock-buyer__buyer-info" v-if="buyer.showInfo">
                             <div class="ardozlock-buyer__app-card" v-for="app in buyer.apps" :key="app.name">

@@ -4,6 +4,36 @@ class shopArdozlockBuyersModel extends waModel
 {
     protected $table = 'shop_ardozlock_buyers';
 
+
+    /**
+     * Обновление имени покупателя
+     */
+    public function updateName($buyerId, $name)
+    {
+        $this->updateById($buyerId, ['name' => $name]);
+    }
+
+
+    /**
+     * Обновление email покупателя
+     */
+    public function updateEmail($buyerId, $email)
+    {
+        if (!$this->isEmailUnique($email, $buyerId)) {
+            throw new waException('Этот email уже используется.');
+        }
+        $this->updateById($buyerId, ['email' => $email]);
+    }
+
+    /**
+     * Проверка уникальности email
+     */
+    private function isEmailUnique($email, $buyerId)
+    {
+        $existing = $this->getByField('email', $email);
+        return empty($existing) || $existing['id'] == $buyerId;
+    }
+
     /**
      * Получить дату окончания доступа.
      *

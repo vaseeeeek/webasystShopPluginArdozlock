@@ -12,4 +12,7 @@ return array(
   'ardozlock/updatebuyeraccess/<buyer_id>/' => 'frontend/updatebuyeraccess/',
   'ardozlock/deletebuyer/<buyer_id>/' => 'frontend/deletebuyer/',
   'ardozlock/resetstartdate/<buyer_id>/' => 'frontend/resetstartdate/',
+  'ardozlock/updatebuyer/<buyer_id>/' => 'frontend/updatebuyerprofile',
+  'ardozlock/resetallactivationdates/' => 'frontend/resetallactivationdates',
+  'ardozlock/sendemail/<buyer_id>/' => 'frontend/sendemail',
 );
