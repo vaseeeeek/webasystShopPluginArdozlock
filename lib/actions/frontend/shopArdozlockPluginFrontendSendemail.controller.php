@@ -5,7 +5,6 @@ class shopArdozlockPluginFrontendSendemailController extends waJsonController
     public function execute()
     {
         $buyer_id = waRequest::param('buyer_id', null, 'int');
-
         if (!$buyer_id) {
 
             $this->setError('Не указан ID покупателя');
@@ -24,7 +23,7 @@ class shopArdozlockPluginFrontendSendemailController extends waJsonController
                 $page_links[] = $url;
             }
         }
-
+        waLog::dump($page_links);
         $this->sendEmail($buyer_id, $page_links);
     }
 
@@ -33,46 +32,43 @@ class shopArdozlockPluginFrontendSendemailController extends waJsonController
      */
     protected function generatePageUrl($page)
     {
-        
         $routing = wa()->getRouting();
         $domain = wa()->getConfig()->getDomain();
         $route = $routing->getRoute();
+        $shopHelper = new shopViewHelper(wa('shop'));
         
-        if ($page['page_type'] === 'category' && $page['application_id'] === 'shop') {=
-            $category_model = new shopCategoryModel();
-            $category = $category_model->getById($page['page_id']);
-
+        if ($page['page_type'] === 'category' && $page['application_id'] === 'shop') {
+            $category = $shopHelper->category($page['page_id']);
+            
             if ($category) {
                 $params = [
                     'category_url' => $category[$route['url_type'] == 1 ? 'url' : 'full_url']
                 ];
-                $url = $routing->getRouteUrl('shop/frontend/category', $params, true, $domain);
-
+                
+                $url = $domain . "/category/" . $params['category_url'];
                 return $url;
             }
         }
 
 
         if ($page['page_type'] === 'infopage' && $page['application_id'] === 'shop') {
-            $shopPage = wa()->shop->page();
-            $params = [
-                'page_id' => $page['page_id']
-            ];
-            
-            $url = $routing->getRouteUrl('shop/frontend/page', $params, true, $domain);
-            
+            $shopPage = $shopHelper->page($page['page_id']);
+            $url = $domain . "/" .  $shopPage['full_url'];
             return $url;
         }
 
 
         if ($page['page_type'] === 'infopage' && $page['application_id'] === 'site') {
-            $params = [
-                'page_id' => $page['page_id']
-            ];
-
-            $url = $routing->getRouteUrl('site/frontend/page', $params, true, $domain);
+            $sitePageModel = new waModel();
             
-            return $url;
+            // SQL-запрос для получения данных страницы
+            $sql = "SELECT `full_url` FROM `site_page` WHERE `id` = :page_id";
+            $sitePageData = $sitePageModel->query($sql, ['page_id' => $page['page_id']])->fetch();
+            
+            if ($sitePageData && !empty($sitePageData['full_url'])) {
+                $url = $domain . "/" . $sitePageData['full_url'];
+                return $url;
+            }
         }
 
         return null;
@@ -86,20 +82,35 @@ class shopArdozlockPluginFrontendSendemailController extends waJsonController
     {
         $buyer_model = new shopArdozlockBuyersModel();
         $buyer = $buyer_model->getById($buyer_id);
-
+        
         if (!$buyer || empty($page_links)) {
-
             $this->setError('Невозможно отправить письмо: данные покупателя или страницы отсутствуют.');
             return;
         }
-
-        $subject = 'Доступные страницы для вас';
-        $body = 'Уважаемый ' . $buyer['name'] . ",\n\nВот список доступных страниц для вас:\n";
+        
+        $subject = 'Доступные для вас страницы';
+        
+        // Формируем HTML-тело письма
+        $body = '<html><body>';
+        $body .= '<p>Уважаемый ' . htmlspecialchars($buyer['name']) . ',</p>';
+        $body .= '<p>Вот список доступных страниц для вас:</p><ul>';
+        
         foreach ($page_links as $link) {
-            $body .= $link . "\n";
+            $body .= '<li><a href="' . htmlspecialchars($link) . '">' . htmlspecialchars($link) . '</a></li>';
         }
-
-        $mail_message = new waMailMessage($subject, $body);
+        
+        $body .= '</ul>';
+        $body .= '<p>С уважением,<br>Ваш магазин</p>';
+        $body .= '</body></html>';
+        
+        // Создаем и отправляем сообщение
+        $mail_message = new waMailMessage($subject, $body, 'text/html');
         $mail_message->setTo($buyer['email'], $buyer['name']);
+        if ($mail_message->send()) {
+            // waLog::log("Письмо успешно отправлено на email: {$buyer['email']}", 'ardozlock_sendemail.log');
+        } else {
+            waLog::log("Ошибка при отправке письма для покупателя ID: $buyer_id", 'ardozlock_sendemail.log');
+        }
+        
     }
 }
