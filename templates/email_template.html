@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Доступные для вас страницы</title>
+    <style type="text/css">
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+
+        .email-container {
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 6px;
+            padding: 20px;
+            max-width: 600px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #444444;
+            margin: 0 0 20px;
+        }
+
+        p {
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        ul {
+            padding-left: 20px;
+            list-style-type: disc;
+            margin: 0;
+        }
+
+        li {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #777777;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <h1>Уважаемый {$buyer.name},</h1>
+        <p>Вот список доступных страниц для вас:</p>
+        <ul>
+            {foreach from=$page_links item=link}
+            <li><a href="{$link|escape:'html'}">{$link|escape:'html'}</a></li>
+            {/foreach}
+        </ul>
+        <div class="footer">
+            <p>Спасибо, что пользуетесь нашим сервисом!</p>
+        </div>
+    </div>
+</body>
+
+</html>

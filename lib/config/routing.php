@@ -15,4 +15,6 @@ return array(
   'ardozlock/updatebuyer/<buyer_id>/' => 'frontend/updatebuyerprofile',
   'ardozlock/resetallactivationdates/' => 'frontend/resetallactivationdates',
   'ardozlock/sendemail/<buyer_id>/' => 'frontend/sendemail',
+  'ardozlock/sendmassemail/' => 'frontend/sendmassemail',
+  'ardozlock/saveemailtemplate/' => 'frontend/saveemailtemplate',
 );

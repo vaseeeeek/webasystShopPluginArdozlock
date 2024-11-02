@@ -1,40 +1,30 @@
 <?php
 
-class shopArdozlockPluginFrontendSendemailController extends waJsonController
+class shopArdozlockPluginFrontendSendmassemailController extends waJsonController
 {
     public function execute()
     {
-        $buyer_id = waRequest::param('buyer_id', null, 'int');
-        if (!$buyer_id) {
-
-            $this->setError('Не указан ID покупателя');
-            return;
-        }
+        $buyer_model = new shopArdozlockBuyersModel();
+        $buyers = $buyer_model->getAll();
 
         $pages_model = new shopArdozlockUnlockedbuyerpagesModel();
-        $pages = $pages_model->getUnlockedPagesByBuyer($buyer_id);
-
-        $page_links = [];
-        
-        $buyer_model = new shopArdozlockBuyersModel();
-        $buyer = $buyer_model->getById($buyer_id);
-
-        foreach ($pages as $page) {
+        foreach ($buyers as $buyer) {
+            $pages = $pages_model->getUnlockedPagesByBuyer($buyer['id']);
+            $page_links = [];
             $buyer_hash = $buyer['hash'];
-            $url = $this->generatePageUrl($page, $buyer_hash);
-
-            if ($url) {
-                $page_links[] = $url;
+            foreach ($pages as $page) {
+                $url = $this->generatePageUrl($page,$buyer_hash);
+                if ($url) {
+                    $page_links[] = $url;
+                }
             }
+            $this->sendEmail($buyer['id'], $page_links);
         }
-        
-        $this->sendEmail($buyer_id, $page_links);
+
+        $this->response = ['status' => 'ok'];
     }
 
-    /**
-     * Метод для генерации URL страницы на основе данных о странице
-     */
-    protected function generatePageUrl($page,$buyer_hash)
+    protected function generatePageUrl($page, $buyer_hash)
     {
         $routing = wa()->getRouting();
         $domain = wa()->getConfig()->getDomain();
@@ -78,43 +68,31 @@ class shopArdozlockPluginFrontendSendemailController extends waJsonController
         return null;
     }
 
-
-    /**
-     * Метод для отправки письма покупателю
-     */
     protected function sendEmail($buyer_id, $page_links)
     {
         $buyer_model = new shopArdozlockBuyersModel();
         $buyer = $buyer_model->getById($buyer_id);
-        
+
         if (!$buyer || empty($page_links)) {
-            $this->setError('Невозможно отправить письмо: данные покупателя или страницы отсутствуют.');
+            waLog::log("Ошибка: данные для покупателя ID $buyer_id отсутствуют.", 'ardozlock_sendmassemail.log');
             return;
         }
-        
+
+        // Загружаем путь к шаблону
+        $pluginPath = wa()->getAppPath('plugins/ardozlock/templates/email_template.html', 'shop');
+
+        // Инициализируем Smarty
+        $smarty = new waSmarty3View(wa());
+        $smarty->assign('buyer', $buyer);
+        $smarty->assign('page_links', $page_links);
+
+        // Генерируем тело письма из шаблона
+        $body = $smarty->fetch($pluginPath);
+
+        // Отправляем письмо
         $subject = 'Доступные для вас страницы';
-        
-        // Формируем HTML-тело письма
-        $body = '<html><body>';
-        $body .= '<p>Уважаемый ' . htmlspecialchars($buyer['name']) . ',</p>';
-        $body .= '<p>Вот список доступных страниц для вас:</p><ul>';
-        
-        foreach ($page_links as $link) {
-            $body .= '<li><a href="' . htmlspecialchars($link) . '">' . htmlspecialchars($link) . '</a></li>';
-        }
-        
-        $body .= '</ul>';
-        $body .= '<p>С уважением,<br>Ваш магазин</p>';
-        $body .= '</body></html>';
-        
-        // Создаем и отправляем сообщение
         $mail_message = new waMailMessage($subject, $body, 'text/html');
         $mail_message->setTo($buyer['email'], $buyer['name']);
-        if ($mail_message->send()) {
-            // waLog::log("Письмо успешно отправлено на email: {$buyer['email']}", 'ardozlock_sendemail.log');
-        } else {
-            waLog::log("Ошибка при отправке письма для покупателя ID: $buyer_id", 'ardozlock_sendemail.log');
-        }
-        
+        $mail_message->send();
     }
 }

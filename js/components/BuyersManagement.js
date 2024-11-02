@@ -168,6 +168,22 @@ export default {
                     console.error(error);
                 });
             }
+        },
+        sendMassEmailToAll() {
+            if (confirm('Вы уверены, что хотите отправить письма всем пользователям?')) {
+                sendRequest('/ardozlock/sendmassemail/', {}, 'POST')
+                    .then(response => {
+                        if (response.status === 'ok') {
+                            alert('Письма успешно отправлены всем пользователям!');
+                        } else {
+                            alert('Ошибка при отправке рассылки');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при запросе:', error);
+                        alert('Ошибка при отправке запроса');
+                    });
+            }
         }
     },
     template: `
@@ -183,6 +199,7 @@ export default {
                 <div class="ardozlock-buyer__header">
                     <input class="ardozlock-buyer__search" type="text" v-model="searchQuery" placeholder="Поиск покупателя...">
                     <button class="ardozlock-buyer__button ardozlock-buyer__button--create" @click="openCreateBuyerForm">Создать покупателя</button>
+                    <button class="ardozlock-buyer__button ardozlock-buyer__button--mass-mail" @click="sendMassEmailToAll">Отправить рассылку всем пользователям</button>
                 </div>
 
                 <!-- Кнопки сортировки -->

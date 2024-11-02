@@ -33,6 +33,10 @@ class shopArdozlockPluginBackendClosedcatlistAction extends waViewAction
         // Fetch and assign links, including their multiple categories and email
         // $linksModel = new shopArdozlockPluginLinksModel();
         // $this->view->assign('links', $linksModel->getLinks());
+        // Загрузка содержимого шаблона письма
+        $template_path = wa()->getAppPath('plugins/ardozlock/templates/email_template.html', 'shop');
+        $emailTemplateContent = file_exists($template_path) ? file_get_contents($template_path) : '';
+        $this->view->assign('emailTemplateContent', $emailTemplateContent);
     }
 
     protected function getCategoriesWithHierarchy()
